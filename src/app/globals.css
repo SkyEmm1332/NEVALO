@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #faf7f1;
+  --color-surface: #ffffff;
+  --color-ink: #1c1b18;
+  --color-soft: #4a4842;
+  --color-muted: #6f6c63;
+  --color-line: #e6e2d8;
+
+  --color-accent: #0f766e;
+  --color-accent-deep: #115e59;
+  --color-teal: #14b8a6;
+  --color-gold: #e8920c;
+  --color-amber: #f5b942;
+  --color-blue: #3b5bdb;
+  --color-coral: #e4573d;
+  --color-danger: #c0392b;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plexmono), ui-monospace, "SFMono-Regular", monospace;
+
+  --shadow-card: 0 1px 0 rgba(28, 27, 24, 0.04), 0 4px 14px rgba(28, 27, 24, 0.06);
+  --shadow-lift: 0 2px 4px rgba(28, 27, 24, 0.08), 0 16px 40px rgba(28, 27, 24, 0.16);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Animations ---- */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, -30px);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-drift {
+  animation: drift 14s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 34s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-float,
+  .animate-drift,
+  .animate-marquee {
+    animation: none !important;
+  }
+}
