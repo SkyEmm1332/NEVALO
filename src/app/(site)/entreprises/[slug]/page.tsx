@@ -143,6 +143,51 @@ export default async function CompanyPage({
       (a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
     );
 
+  const negativeReviews = withScore.filter(
+    (review) =>
+      review.recommend === false ||
+      (review.score !== null && review.score < 50),
+  );
+  const answeredNegative = negativeReviews.filter(
+    (review) => review.responses.length > 0,
+  );
+  const lastNegativeResponse = answeredNegative
+    .flatMap((review) => review.responses)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+
+  const invitationStatus =
+    company.invitesClientReviews === true
+      ? "Oui"
+      : company.invitesClientReviews === false
+        ? "Non"
+        : "Non communiqué";
+  const invitationTone =
+    company.invitesClientReviews === true ? "text-accent" : "text-muted";
+  const invitationDetails =
+    company.reviewInvitationDetails ??
+    (company.invitesClientReviews === true
+      ? "L'entreprise déclare inviter ses clients à déposer un avis après une expérience."
+      : company.invitesClientReviews === false
+        ? "L'entreprise déclare ne pas solliciter directement ses clients pour déposer un avis."
+        : "Cette information n'a pas encore été communiquée par l'entreprise.");
+
+  const negativeStatus =
+    negativeReviews.length === 0
+      ? "Aucun avis négatif"
+      : answeredNegative.length > 0
+        ? "Répond aux avis négatifs"
+        : "Pas encore de réponse";
+  const negativeTone =
+    negativeReviews.length === 0
+      ? "text-muted"
+      : answeredNegative.length > 0
+        ? "text-accent"
+        : "text-danger";
+  const negativeDetails =
+    negativeReviews.length === 0
+      ? "Aucun avis négatif n'a été publié pour cette entreprise. Le suivi sera mis à jour dès qu'un retour négatif sera partagé."
+      : `${negativeReviews.length} avis négatif${negativeReviews.length !== 1 ? "s" : ""} publié${negativeReviews.length !== 1 ? "s" : ""}, ${answeredNegative.length} avec réponse de l'entreprise.${lastNegativeResponse ? ` Dernière réponse le ${new Date(lastNegativeResponse.createdAt).toLocaleDateString("fr-FR")}.` : " Aucune réponse de l'entreprise publiée pour le moment."}`;
+
   return (
     <>
       <Breadcrumbs
@@ -511,34 +556,70 @@ export default async function CompanyPage({
             <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
               En bref
             </h2>
-            <dl className="mt-4 space-y-3 text-sm">
-              <div className="flex items-baseline justify-between gap-4">
-                <dt className="text-soft">Avis publiés</dt>
-                <dd className="font-mono font-bold tabular text-ink">
-                  {company.reviews.length}
-                </dd>
-              </div>
-              <div className="flex items-baseline justify-between gap-4">
-                <dt className="text-soft">Avis vérifiés</dt>
-                <dd className="font-mono font-bold tabular text-ink">
-                  {verifiedCount}
-                </dd>
-              </div>
-              <div className="flex items-baseline justify-between gap-4">
-                <dt className="text-soft">Actuels / anciens</dt>
-                <dd className="font-mono font-bold tabular text-ink">
-                  {currentCount} / {formerCount}
-                </dd>
-              </div>
-              {recommendPct !== null ? (
-                <div className="flex items-baseline justify-between gap-4">
-                  <dt className="text-soft">Recommandation</dt>
-                  <dd className="font-mono font-bold tabular text-accent">
-                    {recommendPct}%
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Pratiques déclarées et réponses publiées.
+            </p>
+            <div className="mt-4 divide-y divide-line border-t border-line">
+              <details className="group py-3">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-ink">
+                      Demande des avis aux clients
+                    </span>
+                    <span
+                      className={`mt-0.5 block font-mono text-xs ${invitationTone}`}
+                    >
+                      {invitationStatus}
+                    </span>
+                  </span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mt-0.5 h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </summary>
+                <p className="mt-2 pr-6 text-sm leading-relaxed text-soft">
+                  {invitationDetails}
+                </p>
+              </details>
+
+              <details className="group py-3">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-ink">
+                      Réponse de l&apos;entreprise aux avis négatifs
+                    </span>
+                    <span
+                      className={`mt-0.5 block font-mono text-xs ${negativeTone}`}
+                    >
+                      {negativeStatus}
+                    </span>
+                  </span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mt-0.5 h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </summary>
+                <p className="mt-2 pr-6 text-sm leading-relaxed text-soft">
+                  {negativeDetails}
+                </p>
+              </details>
+            </div>
           </section>
         </div>
 

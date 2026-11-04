@@ -63,6 +63,9 @@ async function main() {
       email: "contact@ivoiretech.ci",
       phone: "+225 27 22 49 80 00",
       address: "Boulevard Latrille, Cocody, Abidjan",
+      invitesClientReviews: true,
+      reviewInvitationDetails:
+        "L'entreprise invite ses clients à déposer un avis après chaque projet ou mission.",
     },
     {
       name: "AgriSud Côte d'Ivoire",
@@ -74,6 +77,9 @@ async function main() {
       email: "contact@agrisud.ci",
       phone: "+225 27 30 64 12 00",
       address: "Zone industrielle, Yamoussoukro",
+      invitesClientReviews: true,
+      reviewInvitationDetails:
+        "Les clients sont invités à partager leur retour après chaque campagne ou livraison.",
     },
     {
       name: "Banque Atlantique CI",
@@ -85,6 +91,9 @@ async function main() {
       email: "contact@banqueatlantique.ci",
       phone: "+225 27 20 21 30 00",
       address: "Avenue Delafosse, Plateau, Abidjan",
+      invitesClientReviews: false,
+      reviewInvitationDetails:
+        "La banque ne sollicite pas directement ses clients pour déposer un avis.",
     },
     {
       name: "Santé Plus Clinique",
@@ -107,6 +116,9 @@ async function main() {
       email: "contact@btpbi.ci",
       phone: "+225 27 31 63 40 00",
       address: "Quartier Air France, Bouaké",
+      invitesClientReviews: true,
+      reviewInvitationDetails:
+        "L'entreprise demande un retour d'expérience aux clients à la clôture des chantiers.",
     },
   ];
 

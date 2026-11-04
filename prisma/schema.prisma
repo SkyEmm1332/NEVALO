@@ -47,23 +47,25 @@ enum CompanyStatus {
 }
 
 model Company {
-  id          String        @id @default(cuid())
-  name        String
-  slug        String?       @unique
-  legalName   String?
-  logoUrl     String?
-  sector      String?
-  description String?
-  website     String?
-  email       String?
-  phone       String?
-  address     String?
-  city        String?
-  size        String?
-  status      CompanyStatus @default(PENDING)
-  claimed     Boolean       @default(false)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id                      String        @id @default(cuid())
+  name                    String
+  slug                    String?       @unique
+  legalName               String?
+  logoUrl                 String?
+  sector                  String?
+  description             String?
+  website                 String?
+  email                   String?
+  phone                   String?
+  address                 String?
+  city                    String?
+  size                    String?
+  invitesClientReviews    Boolean?
+  reviewInvitationDetails String?
+  status                  CompanyStatus @default(PENDING)
+  claimed                 Boolean       @default(false)
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
 
   establishments Establishment[]
   departments    Department[]
