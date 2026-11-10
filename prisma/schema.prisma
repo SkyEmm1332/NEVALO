@@ -185,6 +185,8 @@ model Review {
   contractType String?
   location     String?
   isCurrent    Boolean      @default(false)
+  startDate    DateTime?
+  endDate      DateTime?
   recommend    Boolean?
   visibility   Visibility   @default(ANONYMOUS)
   status       ReviewStatus @default(DRAFT)

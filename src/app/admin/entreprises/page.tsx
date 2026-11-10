@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { setCompanyStatus, createCompany } from "@/app/admin/actions";
 
@@ -101,7 +102,13 @@ export default async function AdminCompaniesPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/admin/entreprises/${c.id}`}
+                        className="rounded-md border border-line bg-paper px-3 py-1.5 text-xs font-medium text-soft hover:bg-line"
+                      >
+                        Modifier
+                      </Link>
                       {c.status !== "PUBLISHED" ? (
                         <form action={setCompanyStatus}>
                           <input type="hidden" name="id" value={c.id} />

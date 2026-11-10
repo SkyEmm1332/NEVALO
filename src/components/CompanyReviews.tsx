@@ -10,8 +10,11 @@ export type CompanyReviewItem = {
   id: string;
   score: number | null;
   isCurrent: boolean;
+  startDate: string | null;
+  endDate: string | null;
   contractType: string | null;
   recommend: boolean | null;
+  visibility: "ANONYMOUS" | "PSEUDONYM" | "NOMINATIVE";
   jobTitle: string;
   location: string | null;
   positives: string | null;
@@ -42,6 +45,23 @@ function isSortValue(value: string): value is SortValue {
 
 function isStatusValue(value: string): value is StatusValue {
   return value === "all" || value === "current" || value === "former";
+}
+
+function formatMonth(value: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(value));
+}
+
+function formatPeriod(startDate: string | null, endDate: string | null) {
+  if (!startDate && !endDate) return null;
+  if (startDate && endDate) {
+    return `${formatMonth(startDate)} – ${formatMonth(endDate)}`;
+  }
+  if (startDate) return `Depuis ${formatMonth(startDate)}`;
+  return `Jusqu'à ${formatMonth(endDate as string)}`;
 }
 
 export function CompanyReviews({
@@ -223,6 +243,10 @@ export function CompanyReviews({
                   year: "numeric",
                 })
               : null;
+            const showJobTitle = !(
+              review.visibility === "ANONYMOUS" && review.isCurrent
+            );
+            const period = formatPeriod(review.startDate, review.endDate);
 
             return (
               <article
@@ -247,10 +271,16 @@ export function CompanyReviews({
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-sm text-soft">
-                        {review.jobTitle}
-                        {review.location ? ` · ${review.location}` : ""}
-                      </p>
+                      {showJobTitle ? (
+                        <p className="mt-0.5 text-sm text-soft">
+                          {review.jobTitle}
+                          {review.location ? ` · ${review.location}` : ""}
+                        </p>
+                      ) : review.location ? (
+                        <p className="mt-0.5 text-sm text-soft">
+                          {review.location}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
@@ -310,6 +340,7 @@ export function CompanyReviews({
                   <span>
                     {review.isCurrent ? "Employé actuel" : "Ancien employé"}
                   </span>
+                  {period ? <span>· {period}</span> : null}
                   {review.contractType ? (
                     <span>· {review.contractType}</span>
                   ) : null}

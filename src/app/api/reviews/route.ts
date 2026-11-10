@@ -19,6 +19,12 @@ const CRITERIA: Criterion[] = [
 
 const VISIBILITIES: Visibility[] = ["ANONYMOUS", "PSEUDONYM", "NOMINATIVE"];
 
+function parseOptionalDate(value: unknown): Date | null {
+  if (typeof value !== "string" || !value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user) {
@@ -30,6 +36,9 @@ export async function POST(request: Request) {
   const jobTitle = (body.jobTitle as string)?.trim();
   const ratings = body.ratings as Record<Criterion, number> | undefined;
   const visibility = body.visibility as Visibility;
+  const isCurrent = Boolean(body.isCurrent);
+  const startDate = isCurrent ? null : parseOptionalDate(body.startDate);
+  const endDate = isCurrent ? null : parseOptionalDate(body.endDate);
 
   if (!companyId || !jobTitle) {
     return NextResponse.json(
@@ -40,6 +49,13 @@ export async function POST(request: Request) {
 
   if (!ratings || !VISIBILITIES.includes(visibility)) {
     return NextResponse.json({ error: "Données invalides." }, { status: 400 });
+  }
+
+  if (startDate && endDate && startDate > endDate) {
+    return NextResponse.json(
+      { error: "La date de début doit précéder la date de fin." },
+      { status: 400 },
+    );
   }
 
   const ratingRows = CRITERIA.map((criterion) => {
@@ -64,7 +80,9 @@ export async function POST(request: Request) {
           jobTitle,
           contractType: (body.contractType as string) || null,
           location: (body.location as string)?.trim() || null,
-          isCurrent: Boolean(body.isCurrent),
+          isCurrent,
+          startDate,
+          endDate,
           recommend:
             typeof body.recommend === "boolean" ? body.recommend : null,
           visibility,
