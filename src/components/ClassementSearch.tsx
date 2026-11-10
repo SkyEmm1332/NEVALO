@@ -35,7 +35,7 @@ export function ClassementSearch({
   }, [companies, normalizedQuery]);
 
   return (
-    <div className="rounded-xl border border-line bg-surface p-5">
+    <div className="border border-line bg-surface p-5">
       <label
         htmlFor="classement-search"
         className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-muted"

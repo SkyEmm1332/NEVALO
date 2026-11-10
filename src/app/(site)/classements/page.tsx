@@ -92,7 +92,7 @@ export default async function ClassementsPage() {
             ) : null}
 
             <Reveal>
-              <div className="rounded-xl border border-line bg-surface p-6">
+              <div className="border border-line bg-surface p-6">
                 <p className="font-semibold text-ink">
                   Comment une entreprise entre-t-elle au classement ?
                 </p>
