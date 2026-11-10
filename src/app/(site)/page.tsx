@@ -1,53 +1,57 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getCompaniesWithScore } from "@/lib/companies";
-import { prisma } from "@/lib/prisma";
-import { computeGlobalScore, scoreToFloatStars } from "@/lib/rating";
+import { getHomeStats, getLatestReviews } from "@/lib/home-data";
+import { CRITERIA, computeGlobalScore, scoreToFloatStars } from "@/lib/rating";
 import { PHOTOS, companyCover } from "@/lib/images";
 import { CompanyCard } from "@/components/CompanyCard";
 import { Stars } from "@/components/Stars";
 import { CompanyCarousel } from "@/components/CompanyCarousel";
 import { ReviewCarousel } from "@/components/ReviewCarousel";
 import { Reveal } from "@/components/Reveal";
+import { TypingReview } from "@/components/TypingReview";
 
 export default async function Home() {
-  const [companies, latestReviews, companyCount, reviewCount, userCount, sectors, cities] =
-    await Promise.all([
-      getCompaniesWithScore(),
-      prisma.review.findMany({
-        where: { status: "PUBLISHED" },
-        orderBy: { publishedAt: "desc" },
-        take: 6,
-        include: {
-          company: { select: { name: true, slug: true } },
-          ratings: true,
-        },
-      }),
-      prisma.company.count({ where: { status: "PUBLISHED" } }),
-      prisma.review.count({ where: { status: "PUBLISHED" } }),
-      prisma.user.count(),
-      prisma.company.groupBy({
-        by: ["sector"],
-        where: { status: "PUBLISHED", sector: { not: null } },
-        _count: { _all: true },
-      }),
-      prisma.company.groupBy({
-        by: ["city"],
-        where: { status: "PUBLISHED", city: { not: null } },
-        _count: { _all: true },
-      }),
-    ]);
+  const [
+    companies,
+    latestReviews,
+    { companyCount, reviewCount, userCount, sectorList, cityList },
+  ] = await Promise.all([
+    getCompaniesWithScore(),
+    getLatestReviews(),
+    getHomeStats(),
+  ]);
 
   const topCompanies = companies
     .filter((c) => c.score !== null)
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
     .slice(0, 3);
 
-  const sectorList = sectors
-    .map((s) => ({ name: s.sector as string, count: s._count._all }))
-    .sort((a, b) => b.count - a.count);
-  const cityList = cities
-    .map((c) => ({ name: c.city as string, count: c._count._all }))
-    .sort((a, b) => b.count - a.count);
+  const featuredCompany = topCompanies[0] ?? null;
+
+  const heroQuote = (() => {
+    const review = latestReviews.find(
+      (item) =>
+        item.comment?.trim() ||
+        item.positives?.trim() ||
+        item.negatives?.trim(),
+    );
+    if (!review) return null;
+
+    const raw = (
+      review.comment ??
+      review.positives ??
+      review.negatives ??
+      ""
+    ).trim();
+
+    return {
+      text: raw.length > 120 ? `${raw.slice(0, 117).trimEnd()}…` : raw,
+      company: review.company.name,
+      slug: review.company.slug,
+      score: computeGlobalScore(review.ratings),
+    };
+  })();
 
   const reviewSlides = latestReviews.map((r) => ({
     id: r.id,
@@ -62,6 +66,15 @@ export default async function Home() {
     isCurrent: r.isCurrent,
   }));
 
+  const heroReviews = latestReviews
+    .flatMap((review) => {
+      const meta = { company: review.company.name, jobTitle: review.jobTitle };
+      return [review.positives, review.negatives, review.comment]
+        .filter((text): text is string => Boolean(text?.trim()))
+        .map((text) => ({ ...meta, text }));
+    })
+    .slice(0, 6);
+
   const steps = [
     {
       title: "Créez un compte",
@@ -72,54 +85,55 @@ export default async function Home() {
       desc: "Poste, contrat, ancienneté, note par critère, points positifs et négatifs, et votre rémunération (facultative).",
     },
     {
-      title: "Vérification puis publication",
-      desc: "Prouvez votre lien avec l'entreprise pour être « vérifié ». Les avis sont modérés avant publication.",
+      title: "Publication immédiate",
+      desc: "Votre avis est publié dès l'envoi. Notre équipe peut le retirer s'il enfreint les règles, et chaque signalement est examiné.",
     },
   ];
 
   return (
     <>
       {/* HERO */}
-      <section className="relative flex min-h-[calc(100svh-4rem)] flex-col overflow-hidden bg-ink text-paper">
+      <section className="relative flex min-h-[calc(100svh-65px)] flex-col overflow-hidden bg-ink text-paper">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(45% 55% at 85% 0%, rgba(20,184,166,0.28), transparent 70%), radial-gradient(40% 50% at 0% 100%, rgba(232,146,12,0.16), transparent 70%)",
+              "radial-gradient(45% 55% at 85% 0%, rgba(20,184,166,0.1), transparent 70%), radial-gradient(40% 50% at 0% 100%, rgba(232,146,12,0.08), transparent 70%)",
           }}
         />
 
-        <div className="relative mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-center gap-12 px-6 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-20">
+        <div className="relative mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-center gap-12 px-6 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-10">
           <div>
             <p
-              className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-teal"
+              className="animate-fade-up flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-teal"
               style={{ animationDelay: "0ms" }}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-teal" />
               Registre indépendant
               <span className="hidden sm:inline"> · Côte d&apos;Ivoire</span>
             </p>
 
             <h1
-              className="animate-fade-up mt-6 text-5xl font-extrabold leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl"
+              className="animate-fade-up mt-5 text-5xl font-extrabold leading-[0.98] tracking-tight sm:text-6xl lg:text-[clamp(3.25rem,7.2vh,4.5rem)]"
               style={{ animationDelay: "80ms" }}
             >
-              Choisissez un employeur,
-              <span className="mt-1 block text-teal">pas une promesse.</span>
+              Des avis de salariés
+              <span className="mt-1 block text-teal">
+                sur les employeurs ivoiriens.
+              </span>
             </h1>
 
             <p
-              className="animate-fade-up mt-6 max-w-lg text-lg leading-relaxed text-paper/75"
+              className="animate-fade-up mt-5 max-w-lg text-lg leading-relaxed text-paper/75"
               style={{ animationDelay: "160ms" }}
             >
-              Des expériences de travail réelles, vérifiées et anonymes, pour
+              Des expériences de travail réelles, anonymes ou nominatives, pour
               savoir dans quoi vous vous engagez avant de signer.
             </p>
 
             <form
               action="/entreprises"
               method="GET"
-              className="animate-fade-up mt-8 flex max-w-lg items-center gap-1.5 rounded-xl bg-surface p-1.5 shadow-lift"
+              className="animate-fade-up mt-6 flex max-w-lg items-center gap-1.5 rounded-xl bg-surface p-1.5 shadow-lift"
               style={{ animationDelay: "240ms" }}
             >
               <span className="pl-3 text-muted" aria-hidden>
@@ -151,7 +165,7 @@ export default async function Home() {
             </form>
 
             <div
-              className="animate-fade-up mt-4 flex flex-wrap items-center gap-2 text-xs text-paper/55"
+              className="animate-fade-up mt-3 flex flex-wrap items-center gap-2 text-xs text-paper/55"
               style={{ animationDelay: "300ms" }}
             >
               <span className="font-mono uppercase tracking-wide">
@@ -167,66 +181,120 @@ export default async function Home() {
                 </Link>
               ))}
             </div>
+
+            <div
+              className="animate-fade-up"
+              style={{ animationDelay: "360ms" }}
+            >
+              <TypingReview reviews={heroReviews} />
+            </div>
           </div>
 
-          {/* Collage photo + fiche de note */}
+          {/* Collage de cartes */}
           <div className="relative">
-            <div className="mx-auto grid max-w-md grid-cols-[1.3fr_1fr] gap-3 lg:max-w-none">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-2xl ring-1 ring-white/10">
-                <img
-                  src={PHOTOS.hero}
-                  alt="Deux collègues échangeant devant un ordinateur"
-                  className="h-full w-full object-cover"
-                />
-<div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
-<span className="absolute left-3 top-3 rounded-full bg-ink/70 px-3 py-1 font-mono text-[10px] uppercase tracking-wide text-paper backdrop-blur">
-              Avis vérifié
-            </span>
+            <div className="relative mx-auto h-[30rem] w-full max-w-sm sm:h-[32rem] sm:max-w-lg lg:h-[34rem] lg:max-w-xl">
+              <div className="absolute left-0 top-1/2 z-10 w-[60%] -translate-y-1/2 lg:w-[62%]">
+                <div className="relative">
+                  <div className="relative z-10 ml-0 w-[92%] -rotate-[3deg] overflow-hidden rounded-xl border border-white/15 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.75)]">
+                    <div className="relative aspect-[16/10]">
+                      <Image
+                        src={PHOTOS.hero}
+                        alt="Deux collègues échangeant devant un ordinateur"
+                        fill
+                        preload
+                        sizes="(max-width: 1024px) 60vw, 600px"
+                        className="object-cover object-[center_40%]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="relative z-20 ml-auto -mt-12 w-[92%] rotate-[2deg] overflow-hidden rounded-xl border border-white/15 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.75)]">
+                    <div className="relative aspect-[2/1]">
+                      <Image
+                        src={PHOTOS.mission}
+                        alt="Équipe en réunion dans un bureau"
+                        fill
+                        sizes="(max-width: 1024px) 60vw, 600px"
+                        className="object-cover object-[center_35%]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="relative z-30 ml-0 -mt-12 w-[92%] -rotate-[2deg] overflow-hidden rounded-xl border border-white/15 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.75)]">
+                    <div className="relative aspect-[2/1]">
+                      <Image
+                        src={PHOTOS.trust}
+                        alt="Poignée de main entre deux professionnels"
+                        fill
+                        sizes="(max-width: 1024px) 60vw, 600px"
+                        className="object-cover"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="relative z-40 ml-auto -mt-12 w-[92%] rotate-[3deg] overflow-hidden rounded-xl border border-white/15 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.75)]">
+                    <div className="relative aspect-[2/1]">
+                      <Image
+                        src={PHOTOS.city}
+                        alt="Vue d'une ville d'affaires"
+                        fill
+                        sizes="(max-width: 1024px) 60vw, 600px"
+                        className="object-cover"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-col gap-3">
-                <div className="relative aspect-square overflow-hidden rounded-2xl ring-1 ring-white/10">
-                  <img
-                    src={PHOTOS.mission}
-                    alt="Équipe en réunion dans un bureau"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-1 flex-col justify-between rounded-2xl bg-surface p-4 text-ink">
-                  <div>
+              <div className="absolute right-0 top-0 z-20 flex h-full w-[38%] flex-col justify-between py-2 lg:w-[34%]">
+                {featuredCompany ? (
+                  <Link
+                    href={`/entreprises/${featuredCompany.slug ?? featuredCompany.id}`}
+                    className="block rotate-[2deg] rounded-xl bg-surface p-4 text-ink shadow-[0_14px_32px_-22px_rgba(0,0,0,0.65)] transition-colors hover:bg-white"
+                  >
                     <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted">
                       Indice NEVALO
                     </p>
                     <p className="mt-1 font-mono text-4xl font-bold leading-none tabular text-accent">
-                      72
-                      <span className="text-sm font-normal text-muted">
-                        /100
-                      </span>
+                      {featuredCompany.score ?? 0}
+                      <span className="text-sm font-normal text-muted">/100</span>
                     </p>
                     <div className="mt-2">
-                      <Stars value={scoreToFloatStars(72)} size="text-xs" />
+                      <Stars
+                        value={scoreToFloatStars(featuredCompany.score ?? 0)}
+                        size="text-xs"
+                      />
                     </div>
-                  </div>
-                  <p className="mt-3 border-t border-line pt-2 text-[11px] text-muted">
-                    Ivoire Tech · 38 avis
-                  </p>
-                </div>
-              </div>
-            </div>
+                    <p className="mt-3 border-t border-line pt-2 text-[11px] text-muted">
+                      {featuredCompany.name} · {featuredCompany.reviewCount} avis
+                    </p>
+                  </Link>
+                ) : null}
 
-            <div className="animate-float absolute -left-4 bottom-8 hidden max-w-[190px] rounded-xl bg-paper px-4 py-3 text-ink shadow-lift sm:block">
-              <p className="text-xs font-semibold leading-snug">
-                « On sait enfin à quoi s&apos;attendre avant de signer. »
-              </p>
-              <p className="mt-1 font-mono text-[10px] uppercase text-muted">
-                Amina · Abidjan
-              </p>
+                {heroQuote ? (
+                  <Link
+                    href={
+                      heroQuote.slug
+                        ? `/entreprises/${heroQuote.slug}`
+                        : "/entreprises"
+                    }
+                    className="block -rotate-[2deg] rounded-lg bg-paper px-4 py-3 text-ink shadow-[0_14px_32px_-22px_rgba(0,0,0,0.65)] transition-colors hover:bg-white"
+                  >
+                    <p className="text-xs font-semibold leading-snug">
+                      « {heroQuote.text} »
+                    </p>
+                    <p className="mt-1 font-mono text-[10px] uppercase text-muted">
+                      {heroQuote.company} · {heroQuote.score}/100
+                    </p>
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
 
         <div className="relative border-t border-white/10">
-          <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-6 px-6 py-6 sm:grid-cols-4">
+          <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-6 px-6 py-3 sm:grid-cols-4">
             {[
               [companyCount, "Entreprises référencées"],
               [reviewCount, "Avis publiés"],
@@ -251,12 +319,13 @@ export default async function Home() {
       <section className="bg-paper">
         <div className="mx-auto grid grid-cols-1 w-full max-w-7xl items-center gap-12 px-6 py-16 sm:py-20 lg:grid-cols-[0.85fr_1.15fr]">
           <Reveal>
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl">
-              <img
+            <div className="relative aspect-[4/5] overflow-hidden rounded-xl">
+              <Image
                 src={PHOTOS.howItWorks}
                 alt="Une équipe collaborant autour d'un ordinateur"
-                loading="lazy"
-                className="h-full w-full object-cover"
+                fill
+                sizes="(max-width: 1024px) 100vw, 480px"
+                className="object-cover"
               />
             </div>
           </Reveal>
@@ -323,7 +392,7 @@ export default async function Home() {
                     [
                       "03",
                       "Dix avis minimum",
-                      "En dessous, la note reste indicative et n'entre pas dans les classements.",
+                      "En dessous, la note reste indicative et n'entre pas dans le classement complet.",
                     ],
                   ].map(([n, title, desc]) => (
                     <li key={n} className="flex gap-4">
@@ -352,83 +421,97 @@ export default async function Home() {
 
             <Reveal delay={100}>
               <div>
-                <div className="rounded-2xl border border-line bg-paper p-6 shadow-card sm:p-7">
-                  <div className="flex items-center justify-between border-b border-dashed border-line-strong pb-4">
-                    <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-                        Fiche de calcul
-                      </p>
-                      <p className="mt-0.5 font-bold text-ink">
-                        Comment lire une note
-                      </p>
+                <div className="relative -rotate-1">
+                  <div className="relative overflow-hidden rounded-lg border border-line-strong bg-note shadow-card">
+                    <div
+                      aria-hidden
+                      className="absolute inset-y-0 left-12 w-px bg-amber/50"
+                    />
+                    <div
+                      aria-hidden
+                      className="absolute inset-y-0 left-0 w-12 border-r border-line-strong/70"
+                    >
+                      <div className="flex h-full flex-col items-center justify-around py-5">
+                        {Array.from({ length: 12 }).map((_, i) => (
+                          <span
+                            key={i}
+                            className="h-1.5 w-7 rounded-full border border-line-strong bg-surface"
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <span className="rounded-sm bg-accent/10 px-2 py-1 font-mono text-[10px] font-semibold uppercase text-accent">
-                      Indice
-                    </span>
-                  </div>
 
-                  <div className="mt-4 space-y-3">
-                    {[
-                      ["Ambiance et relations", "20 %", "4/5", "0,80"],
-                      ["Management", "15 %", "3/5", "0,45"],
-                      ["Rémunération", "15 %", "4/5", "0,60"],
-                    ].map(([label, weight, note, contribution]) => (
-                      <div key={label} className="flex items-center gap-3">
-                        <span className="min-w-0 flex-1 truncate text-sm text-soft">
-                          {label}
-                        </span>
-                        <span className="rounded-sm bg-surface px-2 py-0.5 font-mono text-[10px] text-muted">
-                          {weight}
-                        </span>
-                        <span className="w-8 text-right font-mono text-xs tabular text-ink">
-                          {note}
-                        </span>
-                        <span className="w-10 text-right font-mono text-xs font-bold tabular text-ink">
-                          {contribution}
+                    <div className="relative pl-16 pr-6 py-6">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-hand text-2xl leading-none text-ink">
+                            Fiche de calcul
+                          </p>
+                          <p className="mt-1 font-hand text-base leading-none text-muted">
+                            Les 9 critères et leur poids
+                          </p>
+                        </div>
+                        <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                          NEVALO
                         </span>
                       </div>
-                    ))}
-                    <div className="flex items-center gap-3 text-muted">
-                      <span className="min-w-0 flex-1 truncate text-sm">
-                        + 6 autres critères
-                      </span>
-                      <span className="rounded-sm bg-surface px-2 py-0.5 font-mono text-[10px]">
-                        50 %
-                      </span>
-                      <span className="w-8 text-right font-mono text-xs">
-                        —
-                      </span>
-                      <span className="w-10 text-right font-mono text-xs font-bold tabular">
-                        1,80
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-dashed border-line-strong pt-4 text-sm">
-                    <span className="text-soft">Moyenne pondérée</span>
-                    <span className="font-mono font-bold tabular text-ink">
-                      3,65 <span className="font-normal text-muted">/5</span>
-                    </span>
-                  </div>
+                      <ul className="mt-4">
+                        {CRITERIA.map(({ key, label, weight }) => (
+                          <li
+                            key={key}
+                            className="flex items-baseline justify-between gap-3 border-b border-line py-2 font-hand text-xl leading-7 text-ink/90 sm:text-2xl sm:leading-8"
+                          >
+                            <span>{label}</span>
+                            <span className="shrink-0 text-accent-deep">
+                              {weight}%
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
 
-                  <div className="mt-4 flex items-end justify-between">
-                    <div>
-                      <p className="font-mono text-[10px] uppercase tracking-wide text-muted">
-                        Indice final
-                      </p>
-                      <p className="font-mono text-5xl font-bold leading-none tabular text-accent">
-                        73
-                        <span className="text-base font-normal text-muted">
-                          /100
-                        </span>
-                      </p>
+                      <div className="mt-4 flex items-end justify-between gap-4">
+                        <p className="font-hand text-lg leading-6 text-soft">
+                          Moyenne pondérée{" "}
+                          <span className="text-ink">3,65/5</span>
+                        </p>
+                        <p className="font-hand text-4xl leading-none text-accent-deep">
+                          73
+                          <span className="text-lg text-muted">/100</span>
+                        </p>
+                      </div>
+
+                      <Link
+                        href="/methode#exemple"
+                        className="relative mt-3 inline-block pb-2 font-hand text-xl text-accent-deep transition hover:text-accent sm:text-2xl"
+                      >
+                        Voir le calcul détaillé →
+                        <svg
+                          viewBox="0 0 220 10"
+                          preserveAspectRatio="none"
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-x-0 bottom-0 h-2 w-full text-accent-deep/70"
+                        >
+                          <path
+                            d="M2 3 C30 2, 55 4, 90 3 S150 2, 218 4"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.2"
+                            strokeLinecap="round"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <path
+                            d="M6 7 C40 6, 75 8, 110 7 S175 6, 214 8"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1"
+                            strokeLinecap="round"
+                            vectorEffect="non-scaling-stroke"
+                            opacity="0.7"
+                          />
+                        </svg>
+                      </Link>
                     </div>
-                    <Link
-                      href="/methode#exemple"
-                      className="text-sm font-semibold text-accent transition hover:text-accent-deep"
-                    >
-                      Voir le calcul →
-                    </Link>
                   </div>
                 </div>
 
@@ -520,13 +603,14 @@ export default async function Home() {
                 <Reveal key={c.name} delay={i * 70}>
                   <Link
                     href={`/entreprises?city=${encodeURIComponent(c.name)}`}
-                    className="group relative block aspect-[4/3] overflow-hidden rounded-2xl ring-1 ring-white/10"
+                    className="group relative block aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10"
                   >
-                    <img
+                    <Image
                       src={companyCover(c.name)}
                       alt=""
-                      loading="lazy"
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/35 to-transparent" />
                     <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3">
@@ -552,7 +636,7 @@ export default async function Home() {
           ) : null}
 
           <Reveal delay={120}>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+            <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="font-bold">Par secteur</h3>
                 <Link
@@ -620,7 +704,7 @@ export default async function Home() {
             <Reveal>
               <div>
                 <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
-                  Avis vérifiés
+                  Retours d&apos;expérience
                 </p>
                 <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
                   Derniers avis
@@ -639,11 +723,12 @@ export default async function Home() {
 
       {/* CONFIANCE — bande photo */}
       <section className="relative overflow-hidden">
-        <img
+        <Image
           src={PHOTOS.trust}
           alt="Poignée de main professionnelle"
-          loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          sizes="100vw"
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink/95 via-ink/80 to-ink/45" />
         <div className="relative mx-auto w-full max-w-7xl px-6 py-16 text-paper sm:py-20">
@@ -657,9 +742,9 @@ export default async function Home() {
           </Reveal>
           <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
             {[
-              ["Avis vérifiés", "Un contributeur peut prouver son lien avec l'entreprise. Les avis vérifiés sont clairement distingués."],
+              ["Statut affiché", "Chaque avis indique s'il a été vérifié ou non. La mention « vérifié » repose sur un justificatif de lien avec l'entreprise."],
               ["Anonymat protégé", "Publiez anonymement, sous pseudonyme ou à visage découvert. Votre identité n'est jamais révélée sans accord."],
-              ["Droit de réponse", "Les entreprises répondent aux avis, mais ne peuvent jamais supprimer ou déclasser un avis négatif."],
+              ["Droit de réponse", "Les entreprises peuvent demander à publier une réponse, sans jamais supprimer ou déclasser un avis négatif."],
             ].map(([title, desc], i) => (
               <Reveal key={title} delay={i * 80}>
                 <div className="border-t border-white/25 pt-4">
@@ -676,11 +761,12 @@ export default async function Home() {
 
       {/* CTA */}
       <section className="relative overflow-hidden">
-        <img
+        <Image
           src={PHOTOS.city}
           alt="Immeubles de bureaux"
-          loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          sizes="100vw"
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/70 to-ink/40" />
         <div className="relative mx-auto w-full max-w-7xl px-6 py-20">
@@ -690,8 +776,8 @@ export default async function Home() {
                 Votre expérience vaut de l&apos;or.
               </h2>
               <p className="mt-4 text-lg text-paper/85">
-                Partagez-la en quelques minutes et aidez des milliers de
-                candidats à choisir en connaissance de cause.
+                Partagez-la en quelques minutes et aidez d&apos;autres candidats
+                à choisir en connaissance de cause.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link

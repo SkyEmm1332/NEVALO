@@ -22,13 +22,13 @@ export default async function AdminUsersPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold">Utilisateurs</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-muted">
         Gérez les comptes et les rôles d&apos;accès.
       </p>
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="mt-6 overflow-hidden rounded-lg border border-line bg-surface">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
+          <thead className="border-b border-line bg-paper text-xs uppercase text-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Nom</th>
               <th className="px-4 py-3 font-medium">Email</th>
@@ -37,14 +37,14 @@ export default async function AdminUsersPage() {
               <th className="px-4 py-3 font-medium">Changer le rôle</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-line">
             {users.map((u) => (
               <tr key={u.id}>
                 <td className="px-4 py-3 font-medium">{u.name ?? "—"}</td>
-                <td className="px-4 py-3 text-slate-500">{u.email}</td>
-                <td className="px-4 py-3 text-slate-500">{u._count.reviews}</td>
+                <td className="px-4 py-3 text-muted">{u.email}</td>
+                <td className="px-4 py-3 text-muted">{u._count.reviews}</td>
                 <td className="px-4 py-3">
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  <span className="rounded-full bg-paper px-2 py-0.5 text-xs font-medium text-soft">
                     {ROLE_LABEL[u.role] ?? u.role}
                   </span>
                 </td>
@@ -54,7 +54,7 @@ export default async function AdminUsersPage() {
                     <select
                       name="role"
                       defaultValue={u.role}
-                      className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs outline-none focus:border-brand"
+                      className="rounded-md border border-line-strong px-2 py-1.5 text-xs outline-none focus:border-accent"
                     >
                       {ROLES.map((r) => (
                         <option key={r.value} value={r.value}>
@@ -64,7 +64,7 @@ export default async function AdminUsersPage() {
                     </select>
                     <button
                       type="submit"
-                      className="rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                      className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white transition hover:bg-accent-deep"
                     >
                       Appliquer
                     </button>

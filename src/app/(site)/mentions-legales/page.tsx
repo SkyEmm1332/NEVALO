@@ -70,7 +70,7 @@ export default function LegalPage() {
         stats={[
           { value: "7", label: "rubriques" },
           { value: "2026", label: "mise à jour" },
-          { value: "RGPD", label: "bonnes pratiques" },
+          { value: "CI", label: "droit applicable" },
         ]}
       />
 
@@ -127,8 +127,8 @@ export default function LegalPage() {
                   Une question juridique ou une demande de retrait ?
                 </p>
                 <p className="mt-1 text-sm text-soft">
-                  Écrivez-nous à contact@nevalo.ci — nous répondons sous 48 h
-                  ouvrées.
+                  Écrivez-nous à contact@nevalo.ci — les demandes sont traitées
+                  par email.
                 </p>
               </div>
             </Reveal>

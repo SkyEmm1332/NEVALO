@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/Reveal";
 import { PageHero } from "@/components/PageHero";
@@ -34,7 +35,7 @@ const TIMELINE = [
   {
     year: "L'approche",
     title: "Structurer la parole des salariés",
-    desc: "Plutôt que des avis isolés, un référentiel commun : 9 critères notés, une note sur 100, des avis vérifiables et comparables.",
+    desc: "Plutôt que des avis isolés, un référentiel commun : 9 critères notés, une note sur 100, des avis structurés et comparables.",
   },
   {
     year: "Le registre",
@@ -61,11 +62,13 @@ export default function AboutPage() {
         {/* MISSION */}
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <Reveal>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
-              <img
+            <div className="relative aspect-[4/3] overflow-hidden rounded-xl">
+              <Image
                 src={PHOTOS.mission}
                 alt="Une équipe réunie autour d'une table de travail"
-                className="h-full w-full object-cover"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
               />
             </div>
           </Reveal>
@@ -85,17 +88,17 @@ export default function AboutPage() {
                   rarement le quotidien réel.
                 </p>
                 <p>
-                  Nous centralisons des avis anonymes, vérifiés et structurés,
-                  pour que chacun sache vraiment dans quoi il s&apos;engage avant
-                  de signer.
+                  Nous centralisons des avis anonymes ou nominatifs, structurés
+                  et comparables, pour que chacun sache vraiment dans quoi il
+                  s&apos;engage avant de signer.
                 </p>
               </div>
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <div className="rounded-xl border border-line bg-surface p-5">
                   <div className="font-mono text-2xl font-bold tabular text-accent">
-                    48 h
+                    Gratuit
                   </div>
-                  <p className="mt-1 text-xs text-muted">Réponse support</p>
+                  <p className="mt-1 text-xs text-muted">Accès candidats</p>
                 </div>
                 <div className="rounded-xl border border-line bg-surface p-5">
                   <div className="font-mono text-2xl font-bold tabular text-gold">
@@ -168,14 +171,15 @@ export default function AboutPage() {
 
         {/* MODÈLE */}
         <Reveal>
-          <div className="mt-20 overflow-hidden rounded-2xl border border-line bg-surface">
+          <div className="mt-20 overflow-hidden rounded-xl border border-line bg-surface">
             <div className="grid md:grid-cols-[0.9fr_1.1fr]">
               <div className="relative min-h-48">
-                <img
+                <Image
                   src={PHOTOS.trust}
                   alt="Poignée de main professionnelle"
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 45vw"
+                  className="object-cover"
                 />
               </div>
               <div className="p-7">
@@ -209,13 +213,13 @@ export default function AboutPage() {
 
         {/* CTA */}
         <Reveal>
-          <div className="mt-16 flex flex-col items-start justify-between gap-5 rounded-2xl bg-accent-deep p-8 text-paper sm:flex-row sm:items-center">
+          <div className="mt-16 flex flex-col items-start justify-between gap-5 rounded-xl bg-accent-deep p-8 text-paper sm:flex-row sm:items-center">
             <div>
               <h2 className="text-2xl font-extrabold tracking-tight">
                 Envie de contribuer au registre ?
               </h2>
               <p className="mt-1 text-paper/80">
-                Un avis prend quelques minutes et aide des milliers de candidats.
+                Un avis prend quelques minutes et aide d&apos;autres candidats.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">

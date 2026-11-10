@@ -17,10 +17,10 @@ export default async function DeposerAvisPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-14">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">
-        Contribution
+      <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
+        Registre · Contribution
       </p>
-      <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight text-ink">
+      <h1 className="mt-2 text-4xl font-extrabold uppercase tracking-tight text-ink">
         Déposer un avis
       </h1>
       <p className="mt-2 text-sm text-muted">

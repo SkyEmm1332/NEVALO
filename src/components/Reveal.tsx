@@ -12,23 +12,26 @@ export function Reveal({
   delay?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      const frame = requestAnimationFrame(() => setVisible(true));
-      return () => cancelAnimationFrame(frame);
+      return;
     }
 
-    const reveal = () => setVisible(true);
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.95) {
+      return;
+    }
+
+    setHidden(true);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          reveal();
+          setHidden(false);
           observer.disconnect();
         }
       },
@@ -36,22 +39,15 @@ export function Reveal({
     );
     observer.observe(el);
 
-    // Safety net: never leave content permanently hidden if the observer
-    // never fires (e.g. print, instant scroll restoration, JS quirks).
-    const fallback = window.setTimeout(reveal, 1600);
-
-    return () => {
-      observer.disconnect();
-      window.clearTimeout(fallback);
-    };
+    return () => observer.disconnect();
   }, []);
 
   return (
     <div
       ref={ref}
       style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+      className={`transition-all duration-500 ease-out ${
+        hidden ? "translate-y-4 opacity-0" : "translate-y-0 opacity-100"
       } ${className}`}
     >
       {children}

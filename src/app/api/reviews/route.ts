@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { COMPANIES_TAG, REVIEWS_TAG } from "@/lib/cache-tags";
 import type { Criterion, Visibility } from "@prisma/client";
 
 const CRITERIA: Criterion[] = [
@@ -91,6 +93,9 @@ export async function POST(request: Request) {
 
       return created;
     });
+
+    revalidateTag(COMPANIES_TAG, "max");
+    revalidateTag(REVIEWS_TAG, "max");
 
     return NextResponse.json({ id: review.id }, { status: 201 });
   } catch (e) {

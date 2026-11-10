@@ -329,7 +329,8 @@ export function ReviewForm({ companies }: { companies: CompanyOption[] }) {
       <section className={sectionClass}>
         <SectionTitle n="06">Rémunération</SectionTitle>
         <p className="mt-2 text-xs text-muted">
-          Facultatif · les montants sont agrégés et jamais publiés individuellement.
+          Facultatif · le montant déclaré apparaîtra sur la fiche de
+          l&apos;entreprise, avec la mention net ou brut.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <div>

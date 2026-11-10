@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { CompanyAvatar } from "@/components/CompanyAvatar";
 import { companyCover } from "@/lib/images";
@@ -19,14 +20,15 @@ export function CompanyCard({ company }: { company: CompanySummary }) {
   return (
     <Link
       href={company.href ?? `/entreprises/${company.slug ?? company.id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-line bg-surface transition duration-300 hover:-translate-y-0.5 hover:shadow-lift"
+      className="group flex flex-col overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-ink/30"
     >
       <div className="relative h-44 overflow-hidden">
-        <img
+        <Image
           src={companyCover(company.name)}
           alt=""
-          loading="lazy"
-          className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent" />
 

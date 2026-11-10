@@ -1,19 +1,45 @@
 import type { Metadata } from "next";
-import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-export const dynamic = "force-dynamic";
-
-const archivo = Archivo({
+const archivo = localFont({
+  src: "./fonts/archivo-latin.woff2",
   variable: "--font-archivo",
-  subsets: ["latin"],
+  weight: "100 900",
   display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
+const plexMono = localFont({
+  src: [
+    {
+      path: "./fonts/ibm-plex-mono-400-latin.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "./fonts/ibm-plex-mono-500-latin.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "./fonts/ibm-plex-mono-600-latin.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "./fonts/ibm-plex-mono-700-latin.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-plexmono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const caveat = localFont({
+  src: "./fonts/caveat-latin.woff2",
+  variable: "--font-caveat",
+  weight: "400 700",
   display: "swap",
 });
 
@@ -34,7 +60,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${archivo.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${archivo.variable} ${plexMono.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">{children}</body>
     </html>

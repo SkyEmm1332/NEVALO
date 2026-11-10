@@ -31,7 +31,7 @@ export default async function SiteLayout({
               </div>
               <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">
                 Le registre de la transparence professionnelle en Côte
-                d&apos;Ivoire. Des expériences réelles, vérifiées et anonymes,
+                d&apos;Ivoire. Des expériences réelles, anonymes ou nominatives,
                 pour choisir un employeur en connaissance de cause.
               </p>
             </div>

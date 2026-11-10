@@ -1,5 +1,16 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+
+const REVIEW_STATUS: Record<string, { label: string; className: string }> = {
+  DRAFT: { label: "Brouillon", className: "bg-paper text-soft" },
+  IN_VERIFICATION: { label: "En vérification", className: "bg-blue/10 text-blue" },
+  VERIFIED: { label: "Vérifié", className: "bg-accent/10 text-accent" },
+  UNVERIFIED: { label: "Non vérifié", className: "bg-gold/15 text-[#96680f]" },
+  IN_MODERATION: { label: "En modération", className: "bg-accent/10 text-accent" },
+  PUBLISHED: { label: "Publié", className: "bg-accent/10 text-accent" },
+  REJECTED: { label: "Rejeté", className: "bg-danger/10 text-danger" },
+  CONTESTED: { label: "Contesté", className: "bg-gold/15 text-[#96680f]" },
+};
 
 export default async function AdminOverviewPage() {
   const [
@@ -56,49 +67,51 @@ export default async function AdminOverviewPage() {
   ];
 
   return (
-    <div>
+    <div className="overflow-x-auto">
       <h1 className="text-2xl font-bold">Vue d&apos;ensemble</h1>
-      <p className="mt-1 text-sm text-slate-500">État de la plateforme NEVALO.</p>
+      <p className="mt-1 text-sm text-muted">État de la plateforme NEVALO.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
           <Link
             key={s.label}
             href={s.href}
-            className="rounded-xl border border-slate-200 bg-white p-5 transition hover:border-brand"
+            className="rounded-lg border border-line bg-surface p-5 transition hover:border-accent"
           >
-            <div className="text-3xl font-bold text-brand">{s.value}</div>
-            <div className="mt-1 text-sm text-slate-500">{s.label}</div>
+            <div className="font-mono text-3xl font-bold tabular text-accent">
+              {s.value}
+            </div>
+            <div className="mt-1 text-sm text-muted">{s.label}</div>
           </Link>
         ))}
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-slate-200 bg-white p-5">
+        <section className="rounded-lg border border-line bg-surface p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Entreprises en attente</h2>
             <Link
               href="/admin/entreprises"
-              className="text-sm text-brand hover:underline"
+              className="text-sm text-accent hover:underline"
             >
               Tout voir
             </Link>
           </div>
           {pendingCompanyList.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">
+            <p className="mt-4 text-sm text-muted">
               Aucune entreprise en attente de validation.
             </p>
           ) : (
-            <ul className="mt-3 divide-y divide-slate-100">
+            <ul className="mt-3 divide-y divide-line">
               {pendingCompanyList.map((c) => (
-                <li key={c.id} className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="text-sm font-medium">{c.name}</p>
-                    <p className="text-xs text-slate-400">{c.city ?? "—"}</p>
+                <li key={c.id} className="flex items-center justify-between gap-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{c.name}</p>
+                    <p className="text-xs text-muted">{c.city ?? "—"}</p>
                   </div>
                   <Link
                     href="/admin/entreprises"
-                    className="text-xs font-medium text-brand hover:underline"
+                    className="text-xs font-medium text-accent hover:underline"
                   >
                     Valider
                   </Link>
@@ -108,31 +121,35 @@ export default async function AdminOverviewPage() {
           )}
         </section>
 
-        <section className="rounded-xl border border-slate-200 bg-white p-5">
+        <section className="rounded-lg border border-line bg-surface p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Derniers avis</h2>
             <Link
               href="/admin/avis"
-              className="text-sm text-brand hover:underline"
+              className="text-sm text-accent hover:underline"
             >
               Tout voir
             </Link>
           </div>
           {recentReviews.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">Aucun avis pour le moment.</p>
+            <p className="mt-4 text-sm text-muted">Aucun avis pour le moment.</p>
           ) : (
-            <ul className="mt-3 divide-y divide-slate-100">
+            <ul className="mt-3 divide-y divide-line">
               {recentReviews.map((r) => (
-                <li key={r.id} className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="text-sm font-medium">{r.company.name}</p>
-                    <p className="text-xs text-slate-400">
+                <li key={r.id} className="flex items-center justify-between gap-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{r.company.name}</p>
+                    <p className="truncate text-xs text-muted">
                       {r.jobTitle} ·{" "}
                       {new Date(r.createdAt).toLocaleDateString("fr-FR")}
                     </p>
                   </div>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                    {r.status}
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
+                      REVIEW_STATUS[r.status]?.className ?? "bg-paper text-soft"
+                    }`}
+                  >
+                    {REVIEW_STATUS[r.status]?.label ?? r.status}
                   </span>
                 </li>
               ))}

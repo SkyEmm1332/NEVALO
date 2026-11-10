@@ -74,6 +74,9 @@ model Company {
   salaryReports  SalaryReport[]
   responses      ReviewResponse[]
 
+  @@index([status, name])
+  @@index([status, sector])
+  @@index([status, city])
   @@map("companies")
 }
 
@@ -89,6 +92,7 @@ model Establishment {
 
   reviews Review[]
 
+  @@index([companyId])
   @@map("establishments")
 }
 
@@ -102,6 +106,7 @@ model Department {
 
   reviews Review[]
 
+  @@index([companyId])
   @@map("departments")
 }
 
@@ -125,6 +130,8 @@ model ProfessionalExperience {
 
   reviews Review[]
 
+  @@index([userId])
+  @@index([companyId])
   @@map("professional_experiences")
 }
 
@@ -197,6 +204,8 @@ model Review {
   likes         ReviewLike[]
   replies       ReviewReply[]
 
+  @@index([companyId, status, publishedAt])
+  @@index([status, publishedAt])
   @@map("reviews")
 }
 
@@ -224,6 +233,7 @@ model SalaryReport {
   isNet     Boolean  @default(true)
   createdAt DateTime @default(now())
 
+  @@index([companyId])
   @@map("salary_reports")
 }
 
@@ -250,6 +260,7 @@ model Verification {
 
   documents Document[]
 
+  @@index([reviewId, status])
   @@map("verifications")
 }
 
@@ -275,6 +286,7 @@ model ReviewResponse {
   content   String
   createdAt DateTime @default(now())
 
+  @@index([reviewId])
   @@map("review_responses")
 }
 

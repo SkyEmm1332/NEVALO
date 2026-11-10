@@ -1,6 +1,5 @@
-import { getCompaniesWithScore } from "@/lib/companies";
-import { prisma } from "@/lib/prisma";
-import { CompanyCard } from "@/components/CompanyCard";
+import { getCompaniesWithScore, getCompanyFacets } from "@/lib/companies";
+import { CompanyCompare } from "@/components/CompanyCompare";
 import { PageHero } from "@/components/PageHero";
 
 export default async function EntreprisesPage({
@@ -11,22 +10,11 @@ export default async function EntreprisesPage({
   const params = await searchParams;
   const q = params.q?.trim() ?? undefined;
 
-  const [companies, sectors, cities] = await Promise.all([
-    getCompaniesWithScore({ q, sector: params.sector, city: params.city }),
-    prisma.company.findMany({
-      where: { status: "PUBLISHED", sector: { not: null } },
-      distinct: ["sector"],
-      select: { sector: true },
-    }),
-    prisma.company.findMany({
-      where: { status: "PUBLISHED", city: { not: null } },
-      distinct: ["city"],
-      select: { city: true },
-    }),
-  ]);
-
-  const sectorList = sectors.map((s) => s.sector).filter(Boolean) as string[];
-  const cityList = cities.map((c) => c.city).filter(Boolean) as string[];
+  const [companies, { sectors: sectorList, cities: cityList }] =
+    await Promise.all([
+      getCompaniesWithScore({ q, sector: params.sector, city: params.city }),
+      getCompanyFacets(),
+    ]);
 
   return (
     <>
@@ -96,11 +84,7 @@ export default async function EntreprisesPage({
             Aucune entreprise ne correspond à votre recherche.
           </p>
         ) : (
-          <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {companies.map((c) => (
-              <CompanyCard key={c.id} company={c} />
-            ))}
-          </div>
+          <CompanyCompare companies={companies} />
         )}
       </div>
     </>

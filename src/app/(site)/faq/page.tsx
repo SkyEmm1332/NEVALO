@@ -35,11 +35,11 @@ const GROUPS = [
       },
       {
         q: "Comment faire vérifier mon avis ?",
-        a: "Depuis votre espace, vous pouvez téléverser un justificatif de lien avec l'entreprise (contrat, bulletin de paie, attestation). Une fois validé, votre avis porte la mention « vérifié ».",
+        a: "La mention « vérifié » est réservée aux avis dont le lien avec l'entreprise a été contrôlé. Pour transmettre un justificatif (contrat, bulletin de paie, attestation), écrivez à contact@nevalo.ci en précisant l'entreprise et le poste concernés.",
       },
       {
         q: "Puis-je modifier ou supprimer mon avis ?",
-        a: "Oui, depuis votre espace vous pouvez modifier un avis tant qu'il n'a pas été modéré, et demander sa suppression à tout moment.",
+        a: "La modification directe n'est pas encore disponible depuis votre espace. Pour modifier ou supprimer un avis, écrivez à contact@nevalo.ci depuis l'adresse email de votre compte.",
       },
     ],
   },
@@ -53,11 +53,11 @@ const GROUPS = [
       },
       {
         q: "Pourquoi certaines entreprises n'ont-elles pas de note ?",
-        a: "Une entreprise sans avis publié n'est pas évaluée. En dessous de 10 avis, la note est indicative ; elle n'entre dans les classements qu'à partir de 10 avis.",
+        a: "Une entreprise sans avis publié n'est pas évaluée. En dessous de 10 avis, la note est indicative ; elle n'entre dans le classement complet qu'à partir de 10 avis.",
       },
       {
         q: "Les avis anciens comptent-ils autant ?",
-        a: "Non. Les expériences récentes pèsent davantage : une expérience de moins de 12 mois a plus d'impact sur la note qu'un avis de plusieurs années.",
+        a: "Non. Tous les avis publiés comptent à égalité, quelle que soit leur date. Les notes sont moyennées par critère, puis pondérées pour obtenir l'indice sur 100.",
       },
     ],
   },
@@ -71,7 +71,7 @@ const GROUPS = [
       },
       {
         q: "Comment signaler un contenu problématique ?",
-        a: "Depuis la fiche de l'entreprise concernée, chaque avis dispose d'un bouton de signalement. Notre équipe de modération examine chaque signalement.",
+        a: "Écrivez à contact@nevalo.ci en précisant l'entreprise et l'avis concerné. Chaque signalement est examiné par notre équipe.",
       },
       {
         q: "Comment une entreprise peut-elle revendiquer sa fiche ?",
@@ -91,7 +91,7 @@ export default function FaqPage() {
         stats={[
           { value: "4", label: "thématiques" },
           { value: "12", label: "réponses détaillées" },
-          { value: "48 h", label: "délai support" },
+          { value: "Gratuit", label: "accès candidats" },
         ]}
       />
 
@@ -120,7 +120,7 @@ export default function FaqPage() {
             <div className="mt-6 border border-line bg-surface p-5">
               <p className="font-semibold text-ink">Une autre question ?</p>
               <p className="mt-1 text-sm text-soft">
-                Notre équipe répond sous 48 h ouvrées.
+                Notre équipe traite les demandes par email.
               </p>
               <Link
                 href="/contact"

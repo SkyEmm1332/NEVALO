@@ -1,19 +1,4 @@
-const COLORS = [
-  "bg-accent",
-  "bg-blue",
-  "bg-coral",
-  "bg-teal",
-  "bg-gold",
-  "bg-accent-deep",
-];
-
-function hash(str: string): number {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = (h * 31 + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
+import { companyTheme } from "@/lib/company-color";
 
 function initials(name: string): string {
   return name
@@ -28,14 +13,16 @@ function initials(name: string): string {
 export function CompanyAvatar({
   name,
   size = "h-11 w-11 text-sm",
+  color,
 }: {
   name: string;
   size?: string;
+  color?: string;
 }) {
-  const color = COLORS[hash(name) % COLORS.length];
+  const colorClass = color ?? companyTheme(name).avatar;
   return (
     <div
-      className={`flex shrink-0 items-center justify-center rounded-md font-extrabold text-white ${color} ${size}`}
+      className={`flex shrink-0 items-center justify-center rounded-md font-extrabold text-white ${colorClass} ${size}`}
       aria-hidden
     >
       {initials(name)}

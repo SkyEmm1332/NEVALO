@@ -3,6 +3,17 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+const REVIEW_STATUS_LABEL: Record<string, string> = {
+  DRAFT: "Brouillon",
+  IN_VERIFICATION: "En vérification",
+  VERIFIED: "Vérifié",
+  UNVERIFIED: "Non vérifié",
+  IN_MODERATION: "En modération",
+  PUBLISHED: "Publié",
+  REJECTED: "Rejeté",
+  CONTESTED: "Contesté",
+};
+
 export default async function MonEspacePage() {
   const session = await auth();
   if (!session?.user) {
@@ -12,7 +23,7 @@ export default async function MonEspacePage() {
   const reviews = await prisma.review.findMany({
     where: { authorId: session.user.id },
     orderBy: { createdAt: "desc" },
-    include: { company: { select: { name: true, slug: true } } },
+    include: { company: { select: { id: true, name: true, slug: true } } },
   });
 
   return (
@@ -61,11 +72,12 @@ export default async function MonEspacePage() {
                 <div>
                   <p className="font-bold text-ink">{r.company.name}</p>
                   <p className="font-mono text-xs uppercase tracking-wide text-muted">
-                    {r.jobTitle} · {r.status.toLowerCase()}
+                    {r.jobTitle} ·{" "}
+                    {REVIEW_STATUS_LABEL[r.status] ?? r.status}
                   </p>
                 </div>
                 <Link
-                  href={`/entreprises/${r.company.slug ?? r.company.name}`}
+                  href={`/entreprises/${r.company.slug ?? r.company.id}`}
                   className="font-mono text-sm text-accent transition hover:text-accent-deep"
                 >
                   Voir →

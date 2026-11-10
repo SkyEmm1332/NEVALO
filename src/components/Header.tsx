@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Session } from "next-auth";
 import { LogoutButton } from "@/components/LogoutButton";
 import { NavLinks } from "@/components/NavLinks";
+import { MobileMenu } from "@/components/MobileMenu";
 
 export function Header({ session }: { session: Session | null }) {
   const isAdmin =
@@ -22,7 +23,7 @@ export function Header({ session }: { session: Session | null }) {
           <NavLinks />
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="hidden items-center gap-3 md:flex">
           {session?.user ? (
             <>
               <Link
@@ -67,6 +68,11 @@ export function Header({ session }: { session: Session | null }) {
             </>
           )}
         </div>
+
+        <MobileMenu
+          isAuthenticated={Boolean(session?.user)}
+          isAdmin={isAdmin}
+        />
       </div>
     </header>
   );

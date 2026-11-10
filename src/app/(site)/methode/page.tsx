@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
-import { CRITERIA } from "@/lib/rating";
+import type { Criterion } from "@prisma/client";
+import { CRITERIA, MIN_SCORE_FOR_RANKING } from "@/lib/rating";
 import { PHOTOS } from "@/lib/images";
 import { Reveal } from "@/components/Reveal";
 import { PageHero } from "@/components/PageHero";
@@ -7,6 +9,27 @@ import { Stars } from "@/components/Stars";
 
 export const metadata = {
   title: "Méthodologie · NEVALO",
+};
+
+const CRITERION_DESCRIPTIONS: Record<Criterion, string> = {
+  AMBIANCE:
+    "Qualité des relations entre collègues et avec la hiérarchie. L'entraide, la communication et le climat quotidien sont évalués.",
+  MANAGEMENT:
+    "Clarté des consignes, équité et soutien du manager. Un bon management fixe des objectifs réalistes et reconnaît le travail fourni.",
+  REMUNERATION:
+    "Niveau de salaire, avantages et régularité des paiements. Le critère tient compte de l'écart avec le marché et de la charge demandée.",
+  EVOLUTION:
+    "Perspectives de promotion, de formation et de progression. On vérifie si l'entreprise offre un parcours clair et des opportunités réelles.",
+  WORKLOAD:
+    "Volume et rythme des tâches confiées. Le critère mesure si la charge reste soutenable au quotidien.",
+  WORK_LIFE_BALANCE:
+    "Respect du temps hors travail, des congés et de la déconnexion. Les horaires et les sollicitations en dehors des heures comptent.",
+  RECOGNITION:
+    "Valorisation du travail par la direction et les collègues. Feedback, remerciements et visibilité des contributions sont pris en compte.",
+  WORK_CONDITIONS:
+    "Environnement physique et matériel : locaux, équipements, sécurité et confort. Un cadre adapté limite la pénibilité.",
+  STABILITY:
+    "Sécurité de l'emploi et fiabilité des engagements de l'entreprise. Restructurations, retards de paiement et turnover sont pris en compte.",
 };
 
 const EXAMPLE = [
@@ -58,19 +81,26 @@ export default function MethodPage() {
                 {CRITERIA.map(({ key, label, weight }, i) => (
                   <li
                     key={key}
-                    className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b border-line py-3.5 md:grid-cols-[36px_1fr_auto_auto] md:gap-6"
+                    className="grid grid-cols-[auto_1fr_auto] items-start gap-4 border-b border-line py-4 md:grid-cols-[36px_1fr_auto_auto] md:gap-6"
                   >
-                    <span className="font-mono text-xs text-muted">
+                    <span className="mt-1 font-mono text-xs text-muted">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="font-medium text-ink">{label}</span>
-                    <div className="hidden h-1.5 w-28 rounded-full bg-paper md:block">
+                    <div className="min-w-0">
+                      <span className="block text-base font-semibold leading-snug text-ink">
+                        {label}
+                      </span>
+                      <p className="mt-1 max-w-xl text-sm leading-relaxed text-soft">
+                        {CRITERION_DESCRIPTIONS[key]}
+                      </p>
+                    </div>
+                    <div className="mt-1.5 hidden h-1.5 w-28 rounded-full bg-paper md:block">
                       <div
                         className="h-full rounded-full bg-linear-to-r from-accent to-teal"
                         style={{ width: `${(weight / 20) * 100}%` }}
                       />
                     </div>
-                    <span className="text-right font-mono font-bold tabular text-ink">
+                    <span className="mt-0.5 text-right font-mono text-sm font-bold tabular text-ink">
                       {weight}%
                     </span>
                   </li>
@@ -81,11 +111,13 @@ export default function MethodPage() {
 
           <Reveal delay={100}>
             <div className="space-y-5">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
-                <img
+              <div className="relative aspect-[4/3] overflow-hidden rounded-xl">
+                <Image
                   src={PHOTOS.methodology}
                   alt="Atelier de travail avec des notes sur un tableau"
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 45vw"
+                  className="object-cover"
                 />
               </div>
               <div className="rounded-xl bg-accent-deep p-6 text-paper">
@@ -95,7 +127,7 @@ export default function MethodPage() {
                     "Les 9 critères sont notés sur 5 étoiles.",
                     "Chaque note est multipliée par son poids.",
                     "Le total est ramené sur 100.",
-                    "Les avis récents pèsent davantage.",
+                    "Chaque avis publié compte à égalité.",
                   ].map((step) => (
                     <li key={step} className="flex gap-2">
                       <span className="text-teal">→</span>
@@ -112,7 +144,7 @@ export default function MethodPage() {
         <Reveal>
           <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ["bg-slate-300", "0 avis", "Non évaluée", "Aucune note attribuée."],
+              ["bg-line-strong", "0 avis", "Non évaluée", "Aucune note attribuée."],
               ["bg-blue", "1 à 4 avis", "Indicative", "À prendre avec recul."],
               ["bg-gold", "5 à 9 avis", "Limitée", "Signal utile mais partiel."],
               ["bg-teal", "10 avis et +", "Classable", "Entre dans les classements."],
@@ -128,6 +160,79 @@ export default function MethodPage() {
             ))}
           </div>
         </Reveal>
+
+        {/* CLASSEMENT */}
+        <div id="classement" className="mt-16 scroll-mt-24">
+          <Reveal>
+            <div className="grid gap-8 rounded-xl border border-line bg-surface p-6 lg:grid-cols-[1.1fr_0.9fr] lg:p-8">
+              <div>
+                <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
+                  Classement
+                </p>
+                <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+                  Comment une entreprise entre au classement
+                </h2>
+                <p className="mt-3 max-w-xl leading-relaxed text-soft">
+                  Le classement NEVALO repose sur l&apos;indice global sur 100.
+                  Une entreprise doit réunir au moins {MIN_SCORE_FOR_RANKING}{" "}
+                  avis publiés pour y figurer.
+                </p>
+
+                <ol className="mt-6 space-y-4">
+                  {[
+                    {
+                      title: "Seuil d'éligibilité",
+                      desc: `Au moins ${MIN_SCORE_FOR_RANKING} avis publiés. En dessous, la note reste indicative et l'entreprise n'entre pas dans le classement officiel.`,
+                    },
+                    {
+                      title: "Calcul de l'indice",
+                      desc: "Chaque critère est noté sur 5, pondéré selon son poids, puis la moyenne pondérée est ramenée sur 100 (×20).",
+                    },
+                    {
+                      title: "Ordre du classement",
+                      desc: "Les entreprises éligibles sont classées par indice global décroissant. Le classement se met à jour à chaque nouvel avis publié.",
+                    },
+                  ].map((step, i) => (
+                    <li key={step.title} className="flex gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10 font-mono text-xs font-bold text-accent">
+                        {i + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-bold text-ink">{step.title}</p>
+                        <p className="mt-0.5 text-sm leading-relaxed text-soft">
+                          {step.desc}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <div className="rounded-xl bg-accent-deep p-6 text-paper">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-teal">
+                  Aperçu provisoire
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-paper/85">
+                  Tant qu&apos;aucune entreprise n&apos;atteint le seuil de{" "}
+                  {MIN_SCORE_FOR_RANKING} avis, la page Classements affiche un
+                  aperçu provisoire de toutes les entreprises déjà évaluées.
+                  Dès qu&apos;une entreprise est éligible, cet aperçu disparaît
+                  et seul le classement officiel est publié.
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-paper/85">
+                  Cet aperçu ne remplace pas le classement : il permet de suivre
+                  les premières notes sans leur donner une valeur définitive.
+                </p>
+                <Link
+                  href="/classements"
+                  className="mt-5 inline-block text-sm font-semibold text-teal transition hover:text-paper"
+                >
+                  Voir les classements →
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+        </div>
 
         {/* EXEMPLE */}
         <div id="exemple" className="mt-20 scroll-mt-24">
@@ -151,7 +256,7 @@ export default function MethodPage() {
           </Reveal>
 
           <Reveal delay={80}>
-            <div className="mt-8 overflow-hidden rounded-2xl border border-line bg-surface">
+            <div className="mt-8 overflow-hidden rounded-xl border border-line bg-surface">
               <div className="grid border-b border-line sm:grid-cols-3">
                 {[
                   ["1", "Notez", "Chaque critère est noté sur 5 étoiles."],
@@ -189,7 +294,7 @@ export default function MethodPage() {
                 <div className="p-5 sm:p-6">
                   <div className="hidden items-center gap-3 border-b border-line pb-2 font-mono text-[10px] uppercase tracking-wide text-muted sm:flex">
                     <span className="flex-1">Critère</span>
-                    <span className="w-24 text-center">Note</span>
+                    <span className="w-28 text-center">Note</span>
                     <span className="w-12 text-center">Poids</span>
                     <span className="w-14 text-right">Contribution</span>
                   </div>
@@ -198,13 +303,15 @@ export default function MethodPage() {
                     {EXAMPLE.map((e) => (
                       <div key={e.label} className="flex items-center gap-3 py-3">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm text-soft">{e.label}</p>
+                          <p className="truncate text-sm font-medium leading-snug text-ink">
+                            {e.label}
+                          </p>
                           <div className="mt-1 sm:hidden">
-                            <Stars value={e.score} size="text-xs" />
+                            <Stars value={e.score} size="text-xl" />
                           </div>
                         </div>
-                        <div className="hidden w-24 sm:block">
-                          <Stars value={e.score} size="text-xs" />
+                        <div className="hidden w-28 sm:block">
+                          <Stars value={e.score} size="text-xl" />
                         </div>
                         <span className="hidden w-12 text-center font-mono text-xs text-muted sm:block">
                           {e.weight}%
@@ -290,9 +397,9 @@ export default function MethodPage() {
           </Reveal>
           <div className="mt-8 grid gap-5 md:grid-cols-3">
             {[
-              ["bg-accent", "Avis vérifiés", "Un contributeur peut prouver son lien avec l'entreprise (contrat, bulletin, attestation). Ces avis portent la mention « vérifié »."],
-              ["bg-blue", "Modération humaine", "Chaque avis est relu avant publication : propos haineux, données personnelles et diffamation sont écartés."],
-              ["bg-gold", "Droit de réponse", "Les entreprises peuvent répondre publiquement, mais jamais supprimer ou déclasser un avis négatif."],
+              ["bg-accent", "Avis vérifiés", "La mention « vérifié » est réservée aux avis dont le lien avec l'entreprise a été contrôlé (contrat, bulletin, attestation), sur justificatif transmis à contact@nevalo.ci."],
+              ["bg-blue", "Modération humaine", "Chaque signalement est relu : propos haineux, données personnelles et diffamation sont écartés."],
+              ["bg-gold", "Droit de réponse", "Les entreprises peuvent demander à publier une réponse, mais ne peuvent jamais supprimer ou déclasser un avis négatif."],
             ].map(([c, title, desc], i) => (
               <Reveal key={title} delay={i * 70}>
                 <div className="h-full rounded-xl border border-line bg-surface p-6">
@@ -309,7 +416,7 @@ export default function MethodPage() {
 
         {/* CTA */}
         <Reveal>
-          <div className="mt-16 flex flex-col items-start justify-between gap-5 rounded-2xl bg-accent-deep p-8 text-paper sm:flex-row sm:items-center">
+          <div className="mt-16 flex flex-col items-start justify-between gap-5 rounded-xl bg-accent-deep p-8 text-paper sm:flex-row sm:items-center">
             <div>
               <h2 className="text-2xl font-extrabold tracking-tight">
                 Prêt à partager votre expérience ?

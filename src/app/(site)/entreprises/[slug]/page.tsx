@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
@@ -8,8 +9,9 @@ import {
   CRITERIA,
   scoreToStars,
   scoreToFloatStars,
+  formatRating,
 } from "@/lib/rating";
-import { aggregateSalaries, formatXOF } from "@/lib/salary";
+import { formatXOF } from "@/lib/salary";
 import { ScoreStamp } from "@/components/ScoreStamp";
 import { Stars } from "@/components/Stars";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -65,6 +67,7 @@ export default async function CompanyPage({
       salaryReports: {
         where: { review: { status: "PUBLISHED" } },
         select: {
+          id: true,
           jobTitle: true,
           amount: true,
           period: true,
@@ -103,7 +106,11 @@ export default async function CompanyPage({
   const currentCount = company.reviews.filter((r) => r.isCurrent).length;
   const formerCount = company.reviews.length - currentCount;
 
-  const salaryStats = aggregateSalaries(company.salaryReports);
+  const salaryReports = company.salaryReports
+    .filter(
+      (report) => report.amount !== null && report.amount.toNumber() > 0,
+    )
+    .sort((a, b) => a.jobTitle.localeCompare(b.jobTitle));
   const websiteLabel = company.website
     ?.replace(/^https?:\/\//, "")
     .replace(/\/+$/, "");
@@ -198,10 +205,13 @@ export default async function CompanyPage({
       />
       {/* Bannière entreprise — pleine largeur */}
       <section className="relative overflow-hidden bg-ink text-paper">
-        <img
+        <Image
           src={companyCover(company.name)}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-45"
+          fill
+          preload
+          sizes="100vw"
+          className="object-cover opacity-45"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-transparent to-ink/20" />
@@ -427,25 +437,40 @@ export default async function CompanyPage({
                   {company.reviews.length} avis
                 </span>
               </div>
-              <div className="mt-5 space-y-3">
-                {distribution.map(({ star, count, pct }) => (
-                  <div
-                    key={star}
-                    className="grid grid-cols-[2.5rem_1fr_5rem] items-center gap-3 text-sm"
+              {company.reviews.length === 0 ? (
+                <div className="mt-5 border border-dashed border-line-strong bg-paper p-5">
+                  <p className="text-sm leading-relaxed text-soft">
+                    Aucun avis publié pour l&apos;instant. La répartition
+                    apparaîtra dès le premier retour d&apos;expérience.
+                  </p>
+                  <Link
+                    href="/deposer-avis"
+                    className="mt-3 inline-block bg-ink px-4 py-2 text-sm font-semibold text-paper transition hover:bg-soft"
                   >
-                    <span className="font-mono text-muted">{star}★</span>
-                    <div className="h-2 overflow-hidden bg-paper">
-                      <div
-                        className="h-full bg-accent"
-                        style={{ width: `${pct}%` }}
-                      />
+                    Déposer un avis
+                  </Link>
+                </div>
+              ) : (
+                <div className="mt-5 space-y-3">
+                  {distribution.map(({ star, count, pct }) => (
+                    <div
+                      key={star}
+                      className="grid grid-cols-[2.5rem_1fr_5rem] items-center gap-3 text-sm"
+                    >
+                      <span className="font-mono text-muted">{star}★</span>
+                      <div className="h-2 overflow-hidden bg-paper">
+                        <div
+                          className="h-full bg-accent"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="text-right font-mono text-xs tabular text-muted">
+                        {count} · {Math.round(pct)}%
+                      </span>
                     </div>
-                    <span className="text-right font-mono text-xs tabular text-muted">
-                      {count} · {Math.round(pct)}%
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -469,7 +494,7 @@ export default async function CompanyPage({
                         {criterionLabel(key)}
                       </span>
                       <span className="font-mono text-xs font-bold tabular text-ink">
-                        {avg!.toFixed(1)}/5
+                        {formatRating(avg!)}/5
                       </span>
                     </div>
                     <div className="mt-1.5 h-1.5 overflow-hidden bg-paper">
@@ -494,7 +519,19 @@ export default async function CompanyPage({
             <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
               À propos
             </h2>
+            <p className="mt-3 text-sm leading-relaxed text-soft">
+              {company.description ??
+                "Aucune description n'a encore été renseignée pour cette entreprise."}
+            </p>
             <dl className="mt-4 divide-y divide-line border-t border-line text-sm">
+              {company.legalName ? (
+                <div className="flex items-baseline justify-between gap-4 py-3">
+                  <dt className="text-muted">Raison sociale</dt>
+                  <dd className="text-right font-semibold text-ink">
+                    {company.legalName}
+                  </dd>
+                </div>
+              ) : null}
               {company.sector ? (
                 <div className="flex items-baseline justify-between gap-4 py-3">
                   <dt className="text-muted">Secteur</dt>
@@ -519,10 +556,57 @@ export default async function CompanyPage({
                   </dd>
                 </div>
               ) : null}
-              {company.website ? (
-                <div className="flex items-baseline justify-between gap-4 py-3">
-                  <dt className="text-muted">Site web</dt>
-                  <dd className="min-w-0 text-right">
+            </dl>
+          </section>
+
+          <section className="flex h-full flex-col border border-line bg-surface p-5">
+            <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
+              Contact
+            </h2>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Coordonnées publiées par l&apos;entreprise.
+            </p>
+            <dl className="mt-4 divide-y divide-line border-t border-line text-sm">
+              <div className="flex items-baseline justify-between gap-4 py-3">
+                <dt className="text-muted">Email</dt>
+                <dd className="min-w-0 text-right">
+                  {company.email ? (
+                    <a
+                      href={`mailto:${company.email}`}
+                      className="break-all font-semibold text-accent underline-offset-4 hover:underline"
+                    >
+                      {company.email}
+                    </a>
+                  ) : (
+                    <span className="text-muted">Non communiqué</span>
+                  )}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 py-3">
+                <dt className="text-muted">Téléphone</dt>
+                <dd className="text-right">
+                  {company.phone ? (
+                    <a
+                      href={`tel:${company.phone.replace(/\s/g, "")}`}
+                      className="font-semibold text-accent underline-offset-4 hover:underline"
+                    >
+                      {company.phone}
+                    </a>
+                  ) : (
+                    <span className="text-muted">Non communiqué</span>
+                  )}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 py-3">
+                <dt className="text-muted">Adresse</dt>
+                <dd className="text-right font-semibold text-ink">
+                  {company.address ?? company.city ?? "Non communiquée"}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 py-3">
+                <dt className="text-muted">Site web</dt>
+                <dd className="min-w-0 text-right">
+                  {company.website ? (
                     <a
                       href={company.website}
                       target="_blank"
@@ -531,25 +615,12 @@ export default async function CompanyPage({
                     >
                       {websiteLabel}
                     </a>
-                  </dd>
-                </div>
-              ) : null}
+                  ) : (
+                    <span className="text-muted">Non communiqué</span>
+                  )}
+                </dd>
+              </div>
             </dl>
-          </section>
-
-          <section className="flex h-full flex-col border border-line bg-paper p-5">
-            <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
-              Note descriptive
-            </h2>
-            {company.legalName ? (
-              <p className="mt-1 font-mono text-[11px] uppercase tracking-wide text-muted">
-                {company.legalName}
-              </p>
-            ) : null}
-            <p className="mt-3 text-sm leading-relaxed text-soft">
-              {company.description ??
-                "Aucune note descriptive n'a encore été renseignée pour cette entreprise."}
-            </p>
           </section>
 
           <section className="flex h-full flex-col border border-line bg-surface p-5">
@@ -625,7 +696,7 @@ export default async function CompanyPage({
 
         <div
           className={`mt-10 grid gap-10 ${
-            salaryStats.length > 0
+            salaryReports.length > 0
               ? "lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12"
               : ""
           }`}
@@ -716,14 +787,21 @@ export default async function CompanyPage({
                       ? "Aucun avis publié pour cette entreprise. Soyez le premier à partager votre expérience."
                       : "Aucun avis ne correspond à ces filtres."}
                   </p>
-                  {company.reviews.length > 0 ? (
+                  {company.reviews.length === 0 ? (
+                    <Link
+                      href="/deposer-avis"
+                      className="mt-5 inline-block bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-soft"
+                    >
+                      Déposer un avis
+                    </Link>
+                  ) : (
                     <Link
                       href={`/entreprises/${slug}`}
                       className="mt-3 inline-block text-sm font-semibold text-accent underline-offset-4 hover:underline"
                     >
                       Réinitialiser les filtres
                     </Link>
-                  ) : null}
+                  )}
                 </div>
               ) : (
                 <div className="mt-6 space-y-5">
@@ -778,7 +856,7 @@ export default async function CompanyPage({
                                     Vérifié
                                   </span>
                                 ) : (
-                                  <span className="bg-gold/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-[#96680f]">
+                                  <span className="bg-gold/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-gold">
                                     Non vérifié
                                   </span>
                                 )}
@@ -895,7 +973,7 @@ export default async function CompanyPage({
             </section>
           </div>
 
-          {salaryStats.length > 0 ? (
+          {salaryReports.length > 0 ? (
             <aside className="lg:sticky lg:top-24 lg:self-start">
               <section className="border border-line bg-surface">
                 <div className="border-b border-line px-5 py-4">
@@ -903,28 +981,26 @@ export default async function CompanyPage({
                     Rémunérations déclarées
                   </h2>
                   <p className="mt-1 text-xs leading-relaxed text-muted">
-                    Données agrégées, montants individuels jamais affichés.
+                    Montants déclarés dans les avis publiés, en net ou en brut.
                   </p>
                 </div>
                 <div className="divide-y divide-line px-5">
-                  {salaryStats.map((s) => (
-                    <div
-                      key={`${s.jobTitle}-${s.period}-${s.isNet}`}
-                      className="py-4"
-                    >
+                  {salaryReports.map((s) => (
+                    <div key={s.id} className="py-4">
                       <div className="flex items-baseline justify-between gap-3">
                         <span className="text-sm font-semibold text-ink">
                           {s.jobTitle}
                         </span>
-                        <span className="font-mono text-sm font-bold tabular text-ink">
-                          {formatXOF(s.median)}
+                        <span className="text-right">
+                          <span className="block font-mono text-sm font-bold tabular text-ink">
+                            {formatXOF(s.amount!.toNumber())}
+                          </span>
+                          <span className="block font-mono text-[10px] uppercase tracking-wide text-muted">
+                            {PERIOD_LABEL[s.period] ?? s.period} ·{" "}
+                            {s.isNet ? "net" : "brut"}
+                          </span>
                         </span>
                       </div>
-                      <p className="mt-1 text-xs leading-relaxed text-muted">
-                        {formatXOF(s.min)} – {formatXOF(s.max)} ·{" "}
-                        {PERIOD_LABEL[s.period] ?? s.period} ·{" "}
-                        {s.isNet ? "net" : "brut"} · {s.count} décl.
-                      </p>
                     </div>
                   ))}
                 </div>

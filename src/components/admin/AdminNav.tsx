@@ -11,11 +11,21 @@ const items = [
   { href: "/admin/messages", label: "Messages" },
 ];
 
-export function AdminNav() {
+export function AdminNav({
+  variant = "vertical",
+}: {
+  variant?: "vertical" | "horizontal";
+}) {
   const pathname = usePathname();
 
   return (
-    <nav className="space-y-1">
+    <nav
+      className={
+        variant === "horizontal"
+          ? "flex gap-1 overflow-x-auto pb-1"
+          : "space-y-1"
+      }
+    >
       {items.map((item) => {
         const active =
           item.href === "/admin"
@@ -25,10 +35,12 @@ export function AdminNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`block rounded-lg px-3 py-2 text-sm transition ${
+            className={`block rounded-md px-3 py-2 text-sm transition ${
+              variant === "horizontal" ? "shrink-0 whitespace-nowrap" : ""
+            } ${
               active
-                ? "bg-indigo-600 text-white"
-                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                ? "bg-accent text-white"
+                : "text-paper/60 hover:bg-white/10 hover:text-white"
             }`}
           >
             {item.label}

@@ -58,3 +58,7 @@ export function scoreToStars(score: number): number {
 export function scoreToFloatStars(score: number): number {
   return Math.max(1, Math.min(5, score / 20));
 }
+
+export function formatRating(value: number): string {
+  return value.toFixed(1).replace(".", ",").replace(",0", "");
+}

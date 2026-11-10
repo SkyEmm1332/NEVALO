@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { COMPANIES_TAG, REVIEWS_TAG } from "@/lib/cache-tags";
 import { slugify } from "@/lib/slug";
 import type { CompanyStatus, ReviewStatus, UserRole } from "@prisma/client";
 
@@ -21,6 +22,8 @@ export async function setCompanyStatus(formData: FormData) {
 
   await prisma.company.update({ where: { id }, data: { status } });
 
+  updateTag(COMPANIES_TAG);
+  updateTag(REVIEWS_TAG);
   revalidatePath("/admin/entreprises");
   revalidatePath("/admin");
   revalidatePath("/entreprises");
@@ -49,6 +52,8 @@ export async function createCompany(formData: FormData) {
     data: { name, slug, sector, city, size, website, description, status },
   });
 
+  updateTag(COMPANIES_TAG);
+  updateTag(REVIEWS_TAG);
   revalidatePath("/admin/entreprises");
   revalidatePath("/admin");
   revalidatePath("/entreprises");
@@ -66,6 +71,8 @@ export async function setReviewStatus(formData: FormData) {
 
   await prisma.review.update({ where: { id }, data });
 
+  updateTag(COMPANIES_TAG);
+  updateTag(REVIEWS_TAG);
   revalidatePath("/admin/avis");
   revalidatePath("/admin");
   revalidatePath("/");
