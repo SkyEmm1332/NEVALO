@@ -15,6 +15,7 @@ const LABELS: Record<string, string> = {
   login: "Connexion",
   register: "Créer un compte",
   "mon-espace": "Mon espace",
+  parametres: "Paramètres",
   "deposer-avis": "Déposer un avis",
   "proposer-entreprise": "Proposer une entreprise",
 };

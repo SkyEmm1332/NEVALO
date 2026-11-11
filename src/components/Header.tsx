@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { Session } from "next-auth";
-import { LogoutButton } from "@/components/LogoutButton";
 import { NavLinks } from "@/components/NavLinks";
 import { MobileMenu } from "@/components/MobileMenu";
+import { UserMenu } from "@/components/UserMenu";
 
 export function Header({ session }: { session: Session | null }) {
   const isAdmin =
@@ -32,9 +32,6 @@ export function Header({ session }: { session: Session | null }) {
               >
                 Déposer un avis
               </Link>
-              <span className="hidden text-sm text-soft lg:inline">
-                {session.user.name ?? session.user.email}
-              </span>
               {isAdmin ? (
                 <Link
                   href="/admin"
@@ -43,13 +40,9 @@ export function Header({ session }: { session: Session | null }) {
                   Admin
                 </Link>
               ) : null}
-              <Link
-                href="/mon-espace"
-                className="hidden text-sm font-medium text-soft transition hover:text-ink md:inline"
-              >
-                Mon espace
-              </Link>
-              <LogoutButton />
+              <UserMenu
+                name={session.user.name ?? session.user.email ?? "Mon compte"}
+              />
             </>
           ) : (
             <>

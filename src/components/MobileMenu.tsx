@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoutButton } from "@/components/LogoutButton";
 
 const LINKS = [
   { href: "/entreprises", label: "Entreprises" },
@@ -85,7 +86,19 @@ export function MobileMenu({
                 href="/mon-espace"
                 className="block px-3 py-2 text-sm font-medium text-soft transition hover:bg-paper hover:text-ink"
               >
-                Mon espace
+                Mes avis
+              </Link>
+              <Link
+                href="/mon-espace/parametres"
+                className="block px-3 py-2 text-sm font-medium text-soft transition hover:bg-paper hover:text-ink"
+              >
+                Paramètres
+              </Link>
+              <Link
+                href="/faq"
+                className="block px-3 py-2 text-sm font-medium text-soft transition hover:bg-paper hover:text-ink"
+              >
+                Centre d&apos;aide
               </Link>
               {isAdmin ? (
                 <Link
@@ -95,6 +108,7 @@ export function MobileMenu({
                   Administration
                 </Link>
               ) : null}
+              <LogoutButton className="block w-full px-3 py-2 text-left text-sm font-medium text-soft transition hover:bg-paper hover:text-ink" />
             </>
           ) : (
             <>
