@@ -2,6 +2,29 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
+import { getCompaniesWithScore } from "@/lib/companies";
+
+export async function GET(request: Request) {
+  const q = new URL(request.url).searchParams.get("q")?.trim() ?? "";
+
+  if (q.length < 2) {
+    return NextResponse.json({ companies: [] });
+  }
+
+  const companies = await getCompaniesWithScore({ q });
+
+  return NextResponse.json({
+    companies: companies.slice(0, 8).map((company) => ({
+      id: company.id,
+      name: company.name,
+      slug: company.slug,
+      sector: company.sector,
+      city: company.city,
+      score: company.score,
+      reviewCount: company.reviewCount,
+    })),
+  });
+}
 
 export async function POST(request: Request) {
   const session = await auth();

@@ -3,6 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { computeGlobalScore } from "@/lib/rating";
 import { COMPANIES_TAG } from "@/lib/cache-tags";
 
+function normalizeSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 export type CompanyWithScore = {
   id: string;
   name: string;
@@ -61,19 +68,21 @@ export async function getCompaniesWithScore(filters?: {
   const companies = await getCachedCompanies();
   if (!filters) return companies;
 
-  const q = filters.q?.trim().toLowerCase();
-  const sector = filters.sector?.toLowerCase();
-  const city = filters.city?.toLowerCase();
+  const q = filters.q ? normalizeSearch(filters.q.trim()) : "";
+  const sector = filters.sector ? normalizeSearch(filters.sector) : "";
+  const city = filters.city ? normalizeSearch(filters.city) : "";
 
   if (!q && !sector && !city) return companies;
 
   return companies.filter((company) => {
     if (q) {
-      const haystack = `${company.name} ${company.sector ?? ""}`.toLowerCase();
+      const haystack = normalizeSearch(
+        `${company.name} ${company.sector ?? ""} ${company.city ?? ""}`,
+      );
       if (!haystack.includes(q)) return false;
     }
-    if (sector && (company.sector ?? "").toLowerCase() !== sector) return false;
-    if (city && (company.city ?? "").toLowerCase() !== city) return false;
+    if (sector && normalizeSearch(company.sector ?? "") !== sector) return false;
+    if (city && normalizeSearch(company.city ?? "") !== city) return false;
     return true;
   });
 }
