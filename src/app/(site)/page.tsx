@@ -93,7 +93,7 @@ export default async function Home() {
   return (
     <>
       {/* HERO */}
-      <section className="relative flex min-h-[calc(100svh-65px)] flex-col overflow-hidden bg-ink text-paper">
+      <section className="relative isolate flex min-h-[calc(100svh-65px)] flex-col overflow-hidden bg-ink text-paper">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
