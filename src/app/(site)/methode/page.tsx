@@ -109,35 +109,37 @@ export default function MethodPage() {
             </div>
           </Reveal>
 
-          <Reveal delay={100}>
-            <div className="space-y-5">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-xl">
-                <Image
-                  src={PHOTOS.methodology}
-                  alt="Atelier de travail avec des notes sur un tableau"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 45vw"
-                  className="object-cover"
-                />
+          <div id="referentiel-cartes" className="lg:sticky lg:top-24">
+            <Reveal delay={100}>
+              <div className="space-y-5">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-xl">
+                  <Image
+                    src={PHOTOS.methodology}
+                    alt="Atelier de travail avec des notes sur un tableau"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 45vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="rounded-xl bg-accent-deep p-6 text-paper">
+                  <h3 className="text-lg font-bold">De l&apos;avis à la note</h3>
+                  <ol className="mt-3 space-y-2 text-sm text-paper/85">
+                    {[
+                      "Les 9 critères sont notés sur 5 étoiles.",
+                      "Chaque note est multipliée par son poids.",
+                      "Le total est ramené sur 100.",
+                      "Chaque avis publié compte à égalité.",
+                    ].map((step) => (
+                      <li key={step} className="flex gap-2">
+                        <span className="text-teal">→</span>
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
               </div>
-              <div className="rounded-xl bg-accent-deep p-6 text-paper">
-                <h3 className="text-lg font-bold">De l&apos;avis à la note</h3>
-                <ol className="mt-3 space-y-2 text-sm text-paper/85">
-                  {[
-                    "Les 9 critères sont notés sur 5 étoiles.",
-                    "Chaque note est multipliée par son poids.",
-                    "Le total est ramené sur 100.",
-                    "Chaque avis publié compte à égalité.",
-                  ].map((step) => (
-                    <li key={step} className="flex gap-2">
-                      <span className="text-teal">→</span>
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </div>
-          </Reveal>
+            </Reveal>
+          </div>
         </div>
 
         {/* SEUILS */}
