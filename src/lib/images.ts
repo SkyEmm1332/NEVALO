@@ -8,18 +8,20 @@ export const PHOTOS = {
   contact: "/images/contact.jpg",
 };
 
-const COVERS = [
-  "/images/cover-01.jpg",
-  "/images/cover-02.jpg",
-  "/images/cover-03.jpg",
-  "/images/cover-04.jpg",
-  "/images/cover-05.jpg",
-  "/images/cover-06.jpg",
-  "/images/cover-07.jpg",
-  "/images/cover-08.jpg",
-  "/images/cover-09.jpg",
-  "/images/cover-10.jpg",
-];
+export const COVERS = [
+  { key: "cover-01", src: "/images/cover-01.jpg" },
+  { key: "cover-02", src: "/images/cover-02.jpg" },
+  { key: "cover-03", src: "/images/cover-03.jpg" },
+  { key: "cover-04", src: "/images/cover-04.jpg" },
+  { key: "cover-05", src: "/images/cover-05.jpg" },
+  { key: "cover-06", src: "/images/cover-06.jpg" },
+  { key: "cover-07", src: "/images/cover-07.jpg" },
+  { key: "cover-08", src: "/images/cover-08.jpg" },
+  { key: "cover-09", src: "/images/cover-09.jpg" },
+  { key: "cover-10", src: "/images/cover-10.jpg" },
+] as const;
+
+export type CoverKey = (typeof COVERS)[number]["key"];
 
 function hash(str: string): number {
   let h = 0;
@@ -29,6 +31,8 @@ function hash(str: string): number {
   return Math.abs(h);
 }
 
-export function companyCover(name: string): string {
-  return COVERS[hash(name) % COVERS.length];
+export function companyCover(name: string, coverKey?: string | null): string {
+  const selected = COVERS.find((cover) => cover.key === coverKey);
+  if (selected) return selected.src;
+  return COVERS[hash(name) % COVERS.length].src;
 }

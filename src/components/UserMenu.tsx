@@ -11,6 +11,13 @@ const ITEMS = [
   { href: "/faq", label: "Centre d'aide" },
 ];
 
+const COMPANY_ITEMS = [
+  { href: "/mon-espace/entreprise", label: "Avis reçus" },
+  { href: "/mon-espace/entreprise/messages", label: "Messages" },
+  { href: "/mon-espace/entreprise/parametres", label: "Modifier ma fiche" },
+  { href: "/faq", label: "Centre d'aide" },
+];
+
 function initials(name: string): string {
   const cleaned = name.replace(/@.*/, "");
   const parts = cleaned.split(/[\s._-]+/).filter(Boolean);
@@ -22,7 +29,14 @@ function initials(name: string): string {
   return (letters || name[0] || "N").toUpperCase();
 }
 
-export function UserMenu({ name }: { name: string }) {
+export function UserMenu({
+  name,
+  isCompany = false,
+}: {
+  name: string;
+  isCompany?: boolean;
+}) {
+  const items = isCompany ? COMPANY_ITEMS : ITEMS;
   const ref = useRef<HTMLDetailsElement>(null);
   const pathname = usePathname();
 
@@ -104,7 +118,7 @@ export function UserMenu({ name }: { name: string }) {
 
         <div className="p-2">
           <nav aria-label="Menu utilisateur" className="space-y-0.5">
-            {ITEMS.map((item) => (
+            {items.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

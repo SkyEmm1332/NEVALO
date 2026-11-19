@@ -9,6 +9,18 @@ export default async function DeposerAvisPage() {
     redirect("/login");
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      defaultVisibility: true,
+      company: { select: { id: true, slug: true } },
+    },
+  });
+
+  if (session.user.role === "REPRESENTATIVE") {
+    redirect("/mon-espace/entreprise");
+  }
+
   const companies = await prisma.company.findMany({
     where: { status: "PUBLISHED" },
     select: { id: true, name: true },
@@ -27,7 +39,10 @@ export default async function DeposerAvisPage() {
         Partagez votre expérience professionnelle en toute transparence.
       </p>
       <div className="mt-8">
-        <ReviewForm companies={companies} />
+        <ReviewForm
+          companies={companies}
+          defaultVisibility={user?.defaultVisibility ?? "ANONYMOUS"}
+        />
       </div>
     </div>
   );

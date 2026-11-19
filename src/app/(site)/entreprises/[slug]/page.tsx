@@ -17,6 +17,7 @@ import { Stars } from "@/components/Stars";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CompanyAvatar } from "@/components/CompanyAvatar";
 import { CompanyReviews } from "@/components/CompanyReviews";
+import { CompanyVerifiedBadge } from "@/components/CompanyVerifiedBadge";
 import type { CompanyReviewItem } from "@/components/CompanyReviews";
 import { companyCover } from "@/lib/images";
 import type { Criterion } from "@prisma/client";
@@ -37,7 +38,11 @@ export default async function CompanyPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ sort?: string; statut?: string }>;
+  searchParams: Promise<{
+    sort?: string;
+    statut?: string;
+    recommandation?: string;
+  }>;
 }) {
   const [{ slug }, sp, session] = await Promise.all([
     params,
@@ -46,7 +51,9 @@ export default async function CompanyPage({
   ]);
   const sort = sp.sort ?? "recent";
   const statusFilter = sp.statut ?? "all";
+  const recommendFilter = sp.recommandation ?? "all";
   const currentUserId = session?.user?.id ?? null;
+  const isRepresentative = session?.user?.role === "REPRESENTATIVE";
 
   const company = await prisma.company.findUnique({
     where: { slug },
@@ -83,6 +90,19 @@ export default async function CompanyPage({
     notFound();
   }
 
+  const representativeCompanyId =
+    isRepresentative && session?.user?.id
+      ? (
+          await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { companyId: true },
+          })
+        )?.companyId ?? null
+      : null;
+  const canRespondAsCompany =
+    representativeCompanyId !== null &&
+    representativeCompanyId === company.id;
+
   const withScore = company.reviews.map((r) => ({
     ...r,
     score: computeGlobalScore(r.ratings),
@@ -117,6 +137,9 @@ export default async function CompanyPage({
     .replace(/\/+$/, "");
   const locationLabel =
     company.address ?? (company.city ? `${company.city}, Côte d'Ivoire` : null);
+  const claimHref = `/contact?sujet=${encodeURIComponent(
+    `Revendiquer la fiche de ${company.name}`,
+  )}`;
 
   const distribution = [5, 4, 3, 2, 1].map((star) => {
     const count = withScore.filter(
@@ -154,6 +177,7 @@ export default async function CompanyPage({
     negatives: review.negatives,
     publishedAt: review.publishedAt?.toISOString() ?? null,
     verified: review.verifications.length > 0,
+    canReport: review.authorId !== currentUserId,
     authorName:
       review.visibility === "NOMINATIVE" && review.author.name
         ? review.author.name
@@ -219,21 +243,28 @@ export default async function CompanyPage({
 
   return (
     <>
-      <Breadcrumbs
-        items={[
-          { label: "Entreprises", href: "/entreprises" },
-          { label: company.name },
-        ]}
-      />
+      {isRepresentative ? null : (
+        <Breadcrumbs
+          items={[
+            { label: "Entreprises", href: "/entreprises" },
+            { label: company.name },
+          ]}
+        />
+      )}
       {/* Bannière entreprise — pleine largeur */}
       <section className="relative overflow-hidden bg-ink text-paper">
         <Image
-          src={companyCover(company.name)}
+          src={company.coverUrl ?? companyCover(company.name, company.coverKey)}
           alt=""
           fill
           preload
           sizes="100vw"
           className="object-cover opacity-45"
+          style={
+            company.coverUrl && company.bannerPosition
+              ? { objectPosition: company.bannerPosition }
+              : undefined
+          }
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-transparent to-ink/20" />
@@ -243,6 +274,8 @@ export default async function CompanyPage({
             <div className="flex flex-wrap items-center gap-4">
               <CompanyAvatar
                 name={company.name}
+                logoUrl={company.logoUrl}
+                logoPosition={company.logoPosition}
                 size="h-12 w-12 text-base ring-2 ring-white/30"
               />
               <div className="ml-auto sm:hidden">
@@ -250,8 +283,11 @@ export default async function CompanyPage({
               </div>
             </div>
 
-            <h1 className="mt-4 text-3xl font-extrabold uppercase leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl">
-              {company.name}
+            <h1 className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-3xl font-extrabold uppercase leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl">
+              <span>{company.name}</span>
+              {company.claimed && company.verified ? (
+                <CompanyVerifiedBadge className="h-5 w-5 sm:h-6 sm:w-6" />
+              ) : null}
             </h1>
 
             {company.description ? (
@@ -354,6 +390,21 @@ export default async function CompanyPage({
                 ) : null}
               </div>
             ) : null}
+
+            {!company.claimed ? (
+              <div className="mt-5 border-t border-white/15 pt-4">
+                <p className="text-sm leading-relaxed text-paper/70">
+                  Vous êtes propriétaire de cette entreprise ?{" "}
+                  <Link
+                    href={claimHref}
+                    className="font-semibold text-white underline decoration-white/30 underline-offset-4 transition hover:text-teal hover:decoration-teal"
+                  >
+                    Revendiquer la fiche
+                  </Link>{" "}
+                  pour obtenir un compte gratuit et répondre aux avis.
+                </p>
+              </div>
+            ) : null}
           </div>
 
           <div className="hidden shrink-0 sm:block">
@@ -435,12 +486,14 @@ export default async function CompanyPage({
                 </p>
               ) : null}
               <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
-                <Link
-                  href="/deposer-avis"
-                  className="bg-ink px-4 py-2.5 text-sm font-semibold text-paper transition hover:bg-soft"
-                >
-                  Déposer un avis
-                </Link>
+                {isRepresentative ? null : (
+                  <Link
+                    href="/deposer-avis"
+                    className="bg-ink px-4 py-2.5 text-sm font-semibold text-paper transition hover:bg-soft"
+                  >
+                    Déposer un avis
+                  </Link>
+                )}
                 <Link
                   href="/methode"
                   className="text-sm font-semibold text-accent underline-offset-4 hover:underline"
@@ -729,8 +782,12 @@ export default async function CompanyPage({
               slug={slug}
               initialSort={sort}
               initialStatus={statusFilter}
+              initialRecommend={recommendFilter}
               currentUserId={currentUserId}
               isAuthenticated={Boolean(session?.user)}
+              hideReviewCta={isRepresentative}
+              companyVerified={company.verified}
+              canRespondAsCompany={canRespondAsCompany}
             />
           </div>
 

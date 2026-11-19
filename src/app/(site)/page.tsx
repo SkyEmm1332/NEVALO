@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { getCompaniesWithScore } from "@/lib/companies";
 import { getHomeStats, getLatestReviews } from "@/lib/home-data";
 import { CRITERIA, computeGlobalScore, scoreToFloatStars } from "@/lib/rating";
@@ -12,6 +14,11 @@ import { Reveal } from "@/components/Reveal";
 import { TypingReview } from "@/components/TypingReview";
 
 export default async function Home() {
+  const session = await auth();
+  if (session?.user?.role === "REPRESENTATIVE") {
+    redirect("/mon-espace/entreprise");
+  }
+
   const [
     companies,
     latestReviews,

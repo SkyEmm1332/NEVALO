@@ -9,15 +9,39 @@ export default async function SiteLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+  const isCompany = session?.user.role === "REPRESENTATIVE";
 
   return (
     <>
       <Header session={session} />
       <main className="flex flex-1 flex-col">
-        <AutoBreadcrumbs />
+        {isCompany ? null : <AutoBreadcrumbs />}
         {children}
       </main>
-      <footer className="border-t border-line bg-surface">
+      {isCompany ? (
+        <footer className="border-t border-line bg-surface">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-10 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full border border-ink bg-ink font-mono text-[10px] font-bold text-paper">
+                  N
+                </span>
+                <span className="font-extrabold uppercase tracking-tight text-ink">
+                  Nevalo
+                </span>
+              </div>
+              <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">
+                Le registre de la transparence professionnelle en Côte
+                d&apos;Ivoire.
+              </p>
+            </div>
+            <p className="font-mono text-xs text-muted">
+              © {new Date().getFullYear()} Nevalo — Abidjan, Côte d&apos;Ivoire
+            </p>
+          </div>
+        </footer>
+      ) : (
+        <footer className="border-t border-line bg-surface">
         <div className="mx-auto w-full max-w-7xl px-6 py-12">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             <div className="lg:col-span-2">
@@ -107,6 +131,7 @@ export default async function SiteLayout({
           </div>
         </div>
       </footer>
+      )}
     </>
   );
 }

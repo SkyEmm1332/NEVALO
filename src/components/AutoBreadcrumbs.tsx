@@ -15,6 +15,7 @@ const LABELS: Record<string, string> = {
   login: "Connexion",
   register: "Créer un compte",
   "mon-espace": "Mon espace",
+  entreprise: "Entreprise",
   parametres: "Paramètres",
   "deposer-avis": "Déposer un avis",
   "proposer-entreprise": "Proposer une entreprise",
@@ -39,7 +40,9 @@ export function AutoBreadcrumbs() {
     href:
       index === segments.length - 1
         ? undefined
-        : "/" + segments.slice(0, index + 1).join("/"),
+        : segment === "entreprise"
+          ? "/mon-espace"
+          : "/" + segments.slice(0, index + 1).join("/"),
   }));
 
   return <Breadcrumbs items={items} />;

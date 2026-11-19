@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Reveal } from "@/components/Reveal";
 import { PageHero } from "@/components/PageHero";
+import { ScrollSpyNav } from "@/components/ScrollSpyNav";
 
 export const metadata = {
   title: "FAQ · NEVALO",
@@ -71,7 +72,7 @@ const GROUPS = [
       },
       {
         q: "Comment signaler un contenu problématique ?",
-        a: "Écrivez à contact@nevalo.ci en précisant l'entreprise et l'avis concerné. Chaque signalement est examiné par notre équipe.",
+        a: "Utilisez le bouton « Signaler » sous l'avis concerné, choisissez un motif et ajoutez si besoin des précisions. Chaque signalement est examiné par notre équipe. Un signalement ne supprime pas automatiquement l'avis.",
       },
       {
         q: "Comment une entreprise peut-elle revendiquer sa fiche ?",
@@ -80,6 +81,11 @@ const GROUPS = [
     ],
   },
 ];
+
+const FAQ_NAV = GROUPS.map((group) => ({
+  id: group.id,
+  label: group.label,
+}));
 
 export default function FaqPage() {
   return (
@@ -102,20 +108,11 @@ export default function FaqPage() {
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
               Sommaire
             </p>
-            <nav className="mt-3 space-y-1">
-              {GROUPS.map((g, i) => (
-                <a
-                  key={g.id}
-                  href={`#${g.id}`}
-                  className="flex items-baseline gap-3 border-l-2 border-line py-1.5 pl-3 text-sm text-soft transition hover:border-accent hover:text-accent"
-                >
-                  <span className="font-mono text-[11px] text-muted">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {g.label}
-                </a>
-              ))}
-            </nav>
+            <ScrollSpyNav
+              items={FAQ_NAV}
+              ariaLabel="Sommaire de la FAQ"
+              className="mt-3 space-y-1"
+            />
 
             <div className="mt-6 border border-line bg-surface p-5">
               <p className="font-semibold text-ink">Une autre question ?</p>

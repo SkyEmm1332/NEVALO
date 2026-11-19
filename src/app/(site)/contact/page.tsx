@@ -5,13 +5,19 @@ import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { PHOTOS } from "@/lib/images";
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sujet?: string }>;
+}) {
+  const { sujet } = await searchParams;
+
   return (
     <>
       <PageHero
         eyebrow="Registre · Assistance"
         title="Nous contacter"
-        description="Une question, une demande de retrait, un signalement ou un partenariat ? Écrivez-nous — les messages sont traités par email."
+        description="Une question, une demande de retrait ou un partenariat ? Écrivez-nous. Pour signaler un avis, utilisez le bouton « Signaler » sous l’avis concerné."
         stats={[
           { value: "Email", label: "contact direct" },
           { value: "3", label: "types de demande" },
@@ -44,8 +50,8 @@ export default function ContactPage() {
               {
                 color: "bg-gold",
                 label: "Signalement",
-                value: "Par email",
-                desc: "Précisez l'entreprise et l'avis concerné.",
+                value: "Bouton Signaler",
+                desc: "Sous chaque avis publié. Le motif et les précisions sont transmis à l’équipe.",
               },
               {
                 color: "bg-blue",
@@ -81,7 +87,7 @@ export default function ContactPage() {
 
           {/* Formulaire */}
           <Reveal delay={100}>
-            <ContactForm />
+            <ContactForm initialSubject={sujet ?? ""} />
           </Reveal>
         </div>
 

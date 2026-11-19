@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { auth } from "@/auth";
 import { getCompaniesWithScore } from "@/lib/companies";
 import { MIN_SCORE_FOR_RANKING } from "@/lib/rating";
 import { companyCover } from "@/lib/images";
@@ -11,6 +12,8 @@ import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 
 export default async function ClassementsPage() {
+  const session = await auth();
+  const canReview = session?.user.role !== "REPRESENTATIVE";
   const companies = await getCompaniesWithScore();
   const realRanked = companies
     .filter((c) => c.score !== null && c.reviewCount >= MIN_SCORE_FOR_RANKING)
@@ -121,12 +124,14 @@ export default async function ClassementsPage() {
                   Une entreprise doit réunir au moins {MIN_SCORE_FOR_RANKING}{" "}
                   avis publiés pour être classée. Déposez le premier avis.
                 </p>
-                <Link
-                  href="/deposer-avis"
-                  className="mt-5 inline-block rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-soft"
-                >
-                  Déposer un avis
-                </Link>
+                {canReview ? (
+                  <Link
+                    href="/deposer-avis"
+                    className="mt-5 inline-block rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-soft"
+                  >
+                    Déposer un avis
+                  </Link>
+                ) : null}
               </div>
             ) : (
               <>
@@ -151,14 +156,19 @@ export default async function ClassementsPage() {
                           </span>
                           <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-lg">
                             <Image
-                              src={companyCover(c.name)}
+                              src={c.coverUrl ?? companyCover(c.name, c.coverKey)}
                               alt=""
                               fill
                               sizes="80px"
                               className="object-cover"
                             />
                           </div>
-                          <CompanyAvatar name={c.name} size="h-9 w-9 text-xs" />
+                          <CompanyAvatar
+                            name={c.name}
+                            logoUrl={c.logoUrl}
+                            logoPosition={c.logoPosition}
+                            size="h-9 w-9 text-xs"
+                          />
                           <div className="min-w-0 flex-1">
                             <Link
                               href={c.href ?? `/entreprises/${c.slug ?? c.id}`}

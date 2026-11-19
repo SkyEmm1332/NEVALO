@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ReportReviewButton } from "@/components/ReportReviewButton";
 
 type Reply = {
   id: string;
@@ -20,16 +21,22 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function ThumbIcon() {
+function ThumbIcon({
+  className = "",
+  filled = false,
+}: {
+  className?: string;
+  filled?: boolean;
+}) {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
+      fill={filled ? "currentColor" : "none"}
       stroke="currentColor"
-      strokeWidth="1.7"
+      strokeWidth={filled ? "1.4" : "1.7"}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4 w-4"
+      className={`h-5 w-5 ${filled ? "scale-110" : ""} ${className}`}
       aria-hidden="true"
     >
       <path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3Z" />
@@ -47,7 +54,7 @@ function ReplyIcon() {
       strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4 w-4"
+      className="h-5 w-5"
       aria-hidden="true"
     >
       <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
@@ -61,14 +68,18 @@ export function ReviewSocial({
   initialLikeCount,
   initialReplies,
   isAuthenticated,
+  canReport,
   returnTo,
+  hideReply = false,
 }: {
   reviewId: string;
   initialLiked: boolean;
   initialLikeCount: number;
   initialReplies: Reply[];
   isAuthenticated: boolean;
+  canReport: boolean;
   returnTo: string;
+  hideReply?: boolean;
 }) {
   const router = useRouter();
   const loginHref = `/login?callbackUrl=${encodeURIComponent(returnTo)}`;
@@ -191,18 +202,16 @@ export function ReviewSocial({
               ? "Marquer cet avis comme utile"
               : "Connectez-vous pour voter"
           }
-          className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-semibold transition disabled:cursor-wait disabled:opacity-60 ${
-            liked
-              ? "border-accent bg-accent/10 text-accent"
-              : "border-line text-soft hover:border-ink hover:text-ink"
-          }`}
+          className="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-semibold text-soft transition hover:text-ink disabled:cursor-wait disabled:opacity-60"
         >
-          <ThumbIcon />
-          Utile
-          <span className="font-mono text-xs">{likeCount}</span>
+          <ThumbIcon filled={liked} className={liked ? "text-accent" : ""} />
+          <span className="sr-only">Utile</span>
+          {likeCount > 0 ? (
+            <span className="font-mono text-xs">{likeCount}</span>
+          ) : null}
         </button>
 
-        {isAuthenticated ? (
+        {hideReply ? null : isAuthenticated ? (
           <button
             type="button"
             onClick={() => {
@@ -210,7 +219,7 @@ export function ReviewSocial({
               setReplyError(null);
             }}
             aria-expanded={open}
-            className="inline-flex items-center gap-2 border border-line px-3 py-2 text-sm font-semibold text-soft transition hover:border-ink hover:text-ink"
+            className="inline-flex items-center gap-2 px-2 py-2 text-sm font-semibold text-soft transition hover:bg-paper hover:text-ink"
           >
             <ReplyIcon />
             Répondre
@@ -221,12 +230,20 @@ export function ReviewSocial({
         ) : (
           <Link
             href={loginHref}
-            className="inline-flex items-center gap-2 border border-line px-3 py-2 text-sm font-semibold text-soft transition hover:border-ink hover:text-ink"
+            className="inline-flex items-center gap-2 px-2 py-2 text-sm font-semibold text-soft transition hover:bg-paper hover:text-ink"
           >
             <ReplyIcon />
             Répondre
           </Link>
         )}
+
+        {canReport ? (
+          <ReportReviewButton
+            reviewId={reviewId}
+            isAuthenticated={isAuthenticated}
+            returnTo={returnTo}
+          />
+        ) : null}
       </div>
 
       {likeError ? (

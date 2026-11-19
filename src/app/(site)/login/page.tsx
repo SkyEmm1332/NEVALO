@@ -45,7 +45,7 @@ export default function LoginPage() {
         ? callbackUrl
         : null;
 
-    router.push(safeCallback ?? (isAdmin ? "/admin" : "/"));
+    router.push(safeCallback ?? (isAdmin ? "/admin" : "/mon-espace"));
     router.refresh();
   }
 

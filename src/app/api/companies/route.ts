@@ -22,6 +22,7 @@ export async function GET(request: Request) {
       city: company.city,
       score: company.score,
       reviewCount: company.reviewCount,
+      logoUrl: company.logoUrl,
     })),
   });
 }

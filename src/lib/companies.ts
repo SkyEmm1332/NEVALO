@@ -19,6 +19,11 @@ export type CompanyWithScore = {
   size: string | null;
   score: number | null;
   reviewCount: number;
+  logoUrl: string | null;
+  coverKey: string | null;
+  coverUrl: string | null;
+  logoPosition: string | null;
+  bannerPosition: string | null;
 };
 
 const getCachedCompanies = unstable_cache(
@@ -32,6 +37,11 @@ const getCachedCompanies = unstable_cache(
         sector: true,
         city: true,
         size: true,
+        logoUrl: true,
+        coverKey: true,
+        coverUrl: true,
+        logoPosition: true,
+        bannerPosition: true,
         reviews: {
           where: { status: "PUBLISHED" },
           select: {
@@ -53,6 +63,11 @@ const getCachedCompanies = unstable_cache(
         size: c.size,
         score: computeGlobalScore(ratings),
         reviewCount: c.reviews.length,
+        logoUrl: c.logoUrl,
+        coverKey: c.coverKey,
+        coverUrl: c.coverUrl,
+        logoPosition: c.logoPosition,
+        bannerPosition: c.bannerPosition,
       };
     });
   },

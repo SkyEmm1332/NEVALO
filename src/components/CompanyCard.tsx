@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CompanyAvatar } from "@/components/CompanyAvatar";
+import { ScoreBadge } from "@/components/ScoreBadge";
 import { companyCover } from "@/lib/images";
 
 export type CompanySummary = {
@@ -12,6 +13,11 @@ export type CompanySummary = {
   size: string | null;
   score: number | null;
   reviewCount: number;
+  logoUrl?: string | null;
+  coverKey?: string | null;
+  coverUrl?: string | null;
+  logoPosition?: string | null;
+  bannerPosition?: string | null;
   rank?: number;
   href?: string;
 };
@@ -24,29 +30,38 @@ export function CompanyCard({ company }: { company: CompanySummary }) {
     >
       <div className="relative h-44 overflow-hidden">
         <Image
-          src={companyCover(company.name)}
+          src={company.coverUrl ?? companyCover(company.name, company.coverKey)}
           alt=""
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
           className="object-cover"
+          style={
+            company.coverUrl && company.bannerPosition
+              ? { objectPosition: company.bannerPosition }
+              : undefined
+          }
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent" />
 
-{typeof company.rank === "number" ? (
-            <span className="absolute left-3 top-3 rounded-full bg-gold px-3 py-1 font-mono text-xs font-bold text-ink">
-              #{company.rank}
-            </span>
-          ) : null}
+        {typeof company.rank === "number" ? (
+          <span className="absolute left-3 top-3 rounded-full bg-gold px-3 py-1 font-mono text-xs font-bold text-ink">
+            #{company.rank}
+          </span>
+        ) : null}
 
         {company.score !== null ? (
-          <span className="absolute right-3 top-3 rounded-full bg-surface/95 px-3 py-1 font-mono text-sm font-bold tabular text-accent shadow-sm">
-            {company.score}
-            <span className="text-[10px] font-normal text-muted">/100</span>
+          <span className="absolute right-3 top-3 rounded-full bg-surface/95 px-3 py-1.5 shadow-sm">
+            <ScoreBadge score={company.score} />
           </span>
         ) : null}
 
         <div className="absolute inset-x-4 bottom-3 flex items-center gap-3">
-          <CompanyAvatar name={company.name} size="h-10 w-10 text-xs ring-2 ring-white/70" />
+          <CompanyAvatar
+            name={company.name}
+            logoUrl={company.logoUrl}
+            logoPosition={company.logoPosition}
+            size="h-10 w-10 text-xs ring-2 ring-white/70"
+          />
           <div className="min-w-0">
             <p className="truncate font-bold leading-tight text-white">
               {company.name}

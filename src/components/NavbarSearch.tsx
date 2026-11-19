@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { CompanyAvatar } from "@/components/CompanyAvatar";
+import { ScoreBadge } from "@/components/ScoreBadge";
 
 type SearchCompany = {
   id: string;
@@ -11,14 +13,24 @@ type SearchCompany = {
   city: string | null;
   score: number | null;
   reviewCount: number;
+  logoUrl: string | null;
 };
 
-export function NavbarSearch() {
+export function NavbarSearch({
+  tone,
+}: {
+  tone: "default" | "user" | "company";
+}) {
   const pathname = usePathname();
-  return <NavbarSearchInner key={pathname} />;
+  return <NavbarSearchInner key={pathname} tone={tone} />;
 }
 
-function NavbarSearchInner() {
+function NavbarSearchInner({
+  tone,
+}: {
+  tone: "default" | "user" | "company";
+}) {
+  const colored = tone !== "default";
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -158,7 +170,11 @@ function NavbarSearchInner() {
           open ? "Fermer la recherche" : "Rechercher une entreprise"
         }
         aria-expanded={open}
-        className="flex h-9 w-9 shrink-0 items-center justify-center text-soft transition hover:text-ink"
+        className={`flex h-9 w-9 shrink-0 items-center justify-center transition ${
+          colored
+            ? "text-paper/70 hover:text-white"
+            : "text-soft hover:text-ink"
+        }`}
       >
         <svg
           aria-hidden="true"
@@ -203,23 +219,28 @@ function NavbarSearchInner() {
                     onClick={() => goToCompany(company)}
                     className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-paper"
                   >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-ink">
-                        {company.name}
-                      </span>
-                      <span className="mt-0.5 block truncate font-mono text-[10px] uppercase tracking-wide text-muted">
-                        {[company.sector, company.city]
-                          .filter(Boolean)
-                          .join(" · ")}
-                        {company.reviewCount > 0
-                          ? ` · ${company.reviewCount} avis`
-                          : ""}
+                    <span className="flex min-w-0 items-center gap-3">
+                      <CompanyAvatar
+                        name={company.name}
+                        logoUrl={company.logoUrl}
+                        size="h-9 w-9 text-xs"
+                      />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-ink">
+                          {company.name}
+                        </span>
+                        <span className="mt-0.5 block truncate font-mono text-[10px] uppercase tracking-wide text-muted">
+                          {[company.sector, company.city]
+                            .filter(Boolean)
+                            .join(" · ")}
+                          {company.reviewCount > 0
+                            ? ` · ${company.reviewCount} avis`
+                            : ""}
+                        </span>
                       </span>
                     </span>
                     {company.score !== null ? (
-                      <span className="shrink-0 font-mono text-sm font-bold text-accent">
-                        {company.score}/100
-                      </span>
+                      <ScoreBadge score={company.score} className="shrink-0" />
                     ) : null}
                   </button>
                 </li>

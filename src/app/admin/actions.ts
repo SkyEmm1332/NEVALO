@@ -6,7 +6,12 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { COMPANIES_TAG, REVIEWS_TAG } from "@/lib/cache-tags";
 import { slugify } from "@/lib/slug";
-import type { CompanyStatus, ReviewStatus, UserRole } from "@prisma/client";
+import type {
+  CompanyStatus,
+  ReportStatus,
+  ReviewStatus,
+  UserRole,
+} from "@prisma/client";
 
 async function assertAdmin() {
   const session = await auth();
@@ -117,6 +122,7 @@ export async function setReviewStatus(formData: FormData) {
   updateTag(COMPANIES_TAG);
   updateTag(REVIEWS_TAG);
   revalidatePath("/admin/avis");
+  revalidatePath(`/admin/avis/${id}`);
   revalidatePath("/admin");
   revalidatePath("/");
 }
@@ -142,4 +148,23 @@ export async function markMessageRead(formData: FormData) {
   });
 
   revalidatePath("/admin/messages");
+  revalidatePath("/admin");
+}
+
+export async function setReportStatus(formData: FormData) {
+  await assertAdmin();
+  const id = formData.get("id") as string;
+  const status = formData.get("status") as ReportStatus;
+
+  if (!["REVIEWED", "CLOSED"].includes(status)) return;
+
+  const report = await prisma.report.update({
+    where: { id },
+    data: { status },
+    select: { reviewId: true },
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/avis");
+  if (report.reviewId) revalidatePath(`/admin/avis/${report.reviewId}`);
 }

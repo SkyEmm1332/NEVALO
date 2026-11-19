@@ -1,5 +1,6 @@
 import { Reveal } from "@/components/Reveal";
 import { PageHero } from "@/components/PageHero";
+import { ScrollSpyNav } from "@/components/ScrollSpyNav";
 
 export const metadata = {
   title: "Mentions légales · NEVALO",
@@ -60,6 +61,11 @@ const SECTIONS = [
   },
 ];
 
+const LEGAL_NAV = SECTIONS.map((section) => ({
+  id: section.id,
+  label: section.title.replace(/^\d+\.\s*/, ""),
+}));
+
 export default function LegalPage() {
   return (
     <>
@@ -82,20 +88,11 @@ export default function LegalPage() {
               <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
                 Sommaire
               </p>
-              <nav className="mt-3 space-y-1">
-                {SECTIONS.map((s, i) => (
-                  <a
-                    key={s.id}
-                    href={`#${s.id}`}
-                    className="flex items-baseline gap-3 border-l-2 border-line py-1.5 pl-3 text-sm text-soft transition hover:border-accent hover:text-accent"
-                  >
-                    <span className="font-mono text-[11px] text-muted">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    {s.title.replace(/^\d+\\.\\s*/, "")}
-                  </a>
-                ))}
-              </nav>
+              <ScrollSpyNav
+                items={LEGAL_NAV}
+                ariaLabel="Sommaire des mentions légales"
+                className="mt-3 space-y-1"
+              />
             </div>
             <p className="mt-4 px-1 font-mono text-xs text-muted">
               Dernière mise à jour : janvier 2026

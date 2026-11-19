@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Criterion } from "@prisma/client";
+import { auth } from "@/auth";
 import { CRITERIA, MIN_SCORE_FOR_RANKING } from "@/lib/rating";
 import { PHOTOS } from "@/lib/images";
 import { Reveal } from "@/components/Reveal";
@@ -44,8 +45,10 @@ const EXAMPLE = [
   { label: "Stabilité professionnelle", score: 5, weight: 5 },
 ];
 
-export default function MethodPage() {
-  const weighted = EXAMPLE.reduce((sum, e) => sum + e.score * (e.weight / 100), 0);
+export default async function MethodPage() {
+    const session = await auth();
+    const canReview = session?.user.role !== "REPRESENTATIVE";
+    const weighted = EXAMPLE.reduce((sum, e) => sum + e.score * (e.weight / 100), 0);
   const finalScore = Math.round(weighted * 20);
 
   return (
@@ -292,19 +295,22 @@ export default function MethodPage() {
                 ))}
               </div>
 
-              <div className="grid lg:grid-cols-[1.4fr_0.6fr]">
+              <div className="grid lg:grid-cols-[2fr_1fr]">
                 <div className="p-5 sm:p-6">
-                  <div className="hidden items-center gap-3 border-b border-line pb-2 font-mono text-[10px] uppercase tracking-wide text-muted sm:flex">
-                    <span className="flex-1">Critère</span>
-                    <span className="w-28 text-center">Note</span>
-                    <span className="w-12 text-center">Poids</span>
-                    <span className="w-14 text-right">Contribution</span>
+                  <div className="hidden items-center gap-4 border-b border-line pb-2 font-mono text-[10px] uppercase tracking-wide text-muted sm:grid sm:grid-cols-[minmax(0,1fr)_7rem_3.5rem_6rem]">
+                    <span>Critère</span>
+                    <span className="text-center">Note</span>
+                    <span className="text-center">Poids</span>
+                    <span className="whitespace-nowrap text-right">Contribution</span>
                   </div>
 
                   <div className="divide-y divide-line">
                     {EXAMPLE.map((e) => (
-                      <div key={e.label} className="flex items-center gap-3 py-3">
-                        <div className="min-w-0 flex-1">
+                      <div
+                        key={e.label}
+                        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3 sm:grid-cols-[minmax(0,1fr)_7rem_3.5rem_6rem] sm:gap-4"
+                      >
+                        <div className="min-w-0">
                           <p className="truncate text-sm font-medium leading-snug text-ink">
                             {e.label}
                           </p>
@@ -312,13 +318,13 @@ export default function MethodPage() {
                             <Stars value={e.score} size="text-xl" />
                           </div>
                         </div>
-                        <div className="hidden w-28 sm:block">
+                        <div className="hidden text-center sm:block">
                           <Stars value={e.score} size="text-xl" />
                         </div>
-                        <span className="hidden w-12 text-center font-mono text-xs text-muted sm:block">
+                        <span className="hidden text-center font-mono text-xs text-muted sm:block">
                           {e.weight}%
                         </span>
-                        <span className="w-14 text-right font-mono text-sm tabular text-ink">
+                        <span className="text-right font-mono text-sm tabular text-ink">
                           {(e.score * (e.weight / 100)).toFixed(2).replace(".", ",")}
                         </span>
                       </div>
@@ -416,33 +422,34 @@ export default function MethodPage() {
           </div>
         </div>
 
-        {/* CTA */}
-        <Reveal>
-          <div className="mt-16 flex flex-col items-start justify-between gap-5 rounded-xl bg-accent-deep p-8 text-paper sm:flex-row sm:items-center">
-            <div>
-              <h2 className="text-2xl font-extrabold tracking-tight">
-                Prêt à partager votre expérience ?
-              </h2>
-              <p className="mt-1 text-paper/80">
-                Votre avis alimente directement le registre.
-              </p>
+        {canReview ? (
+          <Reveal>
+            <div className="mt-16 flex flex-col items-start justify-between gap-5 rounded-xl bg-accent-deep p-8 text-paper sm:flex-row sm:items-center">
+              <div>
+                <h2 className="text-2xl font-extrabold tracking-tight">
+                  Prêt à partager votre expérience ?
+                </h2>
+                <p className="mt-1 text-paper/80">
+                  Votre avis alimente directement le registre.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/faq"
+                  className="rounded-lg border border-white/40 px-5 py-2.5 text-sm font-semibold transition hover:bg-white/10"
+                >
+                  Consulter la FAQ
+                </Link>
+                <Link
+                  href="/deposer-avis"
+                  className="rounded-lg bg-paper px-5 py-2.5 text-sm font-semibold text-accent-deep transition hover:bg-white"
+                >
+                  Déposer un avis
+                </Link>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/faq"
-                className="rounded-lg border border-white/40 px-5 py-2.5 text-sm font-semibold transition hover:bg-white/10"
-              >
-                Consulter la FAQ
-              </Link>
-              <Link
-                href="/deposer-avis"
-                className="rounded-lg bg-paper px-5 py-2.5 text-sm font-semibold text-accent-deep transition hover:bg-white"
-              >
-                Déposer un avis
-              </Link>
-            </div>
-          </div>
-        </Reveal>
+          </Reveal>
+        ) : null}
       </div>
     </>
   );

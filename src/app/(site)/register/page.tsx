@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn, getSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 
 const inputClass =
   "mt-1.5 w-full border border-line bg-paper px-4 py-2.5 outline-none transition focus:border-ink";
@@ -12,6 +12,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [salary, setSalary] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ export default function RegisterPage() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, jobTitle, salary, password }),
     });
 
     if (!res.ok) {
@@ -47,11 +49,7 @@ export default function RegisterPage() {
       return;
     }
 
-    const session = await getSession();
-    const isAdmin =
-      session?.user?.role === "ADMIN" || session?.user?.role === "MODERATOR";
-
-    router.push(isAdmin ? "/admin" : "/");
+    router.push("/mon-espace");
     router.refresh();
   }
 
@@ -79,15 +77,22 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-sm font-semibold text-ink" htmlFor="name">
-              Nom (facultatif)
+              Nom affiché
             </label>
             <input
               id="name"
               type="text"
+              required
+              minLength={2}
+              maxLength={30}
+              autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={inputClass}
             />
+            <p className="mt-1.5 text-xs text-muted">
+              Ce nom apparaîtra sur vos avis nominatifs.
+            </p>
           </div>
 
           <div>
@@ -98,10 +103,53 @@ export default function RegisterPage() {
               id="email"
               type="email"
               required
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={inputClass}
             />
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-semibold text-ink"
+              htmlFor="jobTitle"
+            >
+              Poste (facultatif)
+            </label>
+            <input
+              id="jobTitle"
+              type="text"
+              maxLength={80}
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              placeholder="Ex. Analyste risques"
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-semibold text-ink"
+              htmlFor="salary"
+            >
+              Rémunération mensuelle (XOF, facultatif)
+            </label>
+            <input
+              id="salary"
+              type="number"
+              min={0}
+              max={100000000}
+              inputMode="numeric"
+              value={salary}
+              onChange={(e) => setSalary(e.target.value)}
+              placeholder="Ex. 450000"
+              className={inputClass}
+            />
+            <p className="mt-1.5 text-xs text-muted">
+              Partagez votre rémunération pour aider les autres candidats à se
+              faire un aperçu des salaires pratiqués.
+            </p>
           </div>
 
           <div>
@@ -113,6 +161,7 @@ export default function RegisterPage() {
               type="password"
               required
               minLength={8}
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={inputClass}

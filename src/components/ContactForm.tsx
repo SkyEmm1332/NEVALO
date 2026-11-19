@@ -5,10 +5,15 @@ import { useState } from "react";
 const inputClass =
   "mt-1.5 w-full border border-line bg-paper px-4 py-2.5 outline-none transition focus:border-ink";
 
-export function ContactForm() {
+export function ContactForm({
+  initialSubject = "",
+}: {
+  initialSubject?: string;
+}) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("");
+  const [phone, setPhone] = useState("");
+  const [subject, setSubject] = useState(initialSubject);
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -22,7 +27,7 @@ export function ContactForm() {
     const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, subject, message }),
+      body: JSON.stringify({ name, email, phone, subject, message }),
     });
 
     setLoading(false);
@@ -36,6 +41,7 @@ export function ContactForm() {
     setSent(true);
     setName("");
     setEmail("");
+    setPhone("");
     setSubject("");
     setMessage("");
   }
@@ -95,6 +101,29 @@ export function ContactForm() {
               className={inputClass}
             />
           </div>
+        </div>
+
+        <div>
+          <label
+            className="block text-sm font-semibold text-ink"
+            htmlFor="phone"
+          >
+            Téléphone joignable *
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            required
+            autoComplete="tel"
+            inputMode="tel"
+            placeholder="+225 07 00 00 00 00"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-muted">
+            Numéro ou WhatsApp pour vous joindre au sujet de votre demande.
+          </p>
         </div>
 
         <div>

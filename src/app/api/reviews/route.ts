@@ -31,6 +31,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
 
+  if (session.user.role === "REPRESENTATIVE") {
+    return NextResponse.json(
+      {
+        error:
+          "Les entreprises ne peuvent pas publier d'avis. Elles peuvent répondre aux avis existants.",
+      },
+      { status: 403 },
+    );
+  }
+
   const body = await request.json();
   const companyId = body.companyId as string;
   const jobTitle = (body.jobTitle as string)?.trim();
@@ -108,6 +118,16 @@ export async function POST(request: Request) {
           },
         });
       }
+
+      await tx.notification.create({
+        data: {
+          companyId,
+          type: "REVIEW",
+          title: "Nouvel avis reçu",
+          message: `Un nouvel avis a été publié pour le poste « ${jobTitle} ».`,
+          link: `/entreprises/${companyId}#avis-${created.id}`,
+        },
+      });
 
       return created;
     });

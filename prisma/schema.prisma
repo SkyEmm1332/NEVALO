@@ -23,9 +23,22 @@ model User {
   email        String   @unique
   passwordHash String
   name         String?
+  jobTitle     String?
+  salary       Int?
   role         UserRole @default(CONTRIBUTOR)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  companyId    String?
+
+  notifyReplies    Boolean @default(true)
+  notifyHelpful    Boolean @default(true)
+  notifyNewsletter Boolean @default(false)
+  notifyOffers     Boolean @default(false)
+
+  defaultVisibility Visibility @default(ANONYMOUS)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company       Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
   experiences   ProfessionalExperience[]
   reviews       Review[]
@@ -33,6 +46,7 @@ model User {
   reviewLikes   ReviewLike[]
   reviewReplies ReviewReply[]
 
+  @@index([companyId])
   @@map("users")
 }
 
@@ -64,15 +78,23 @@ model Company {
   reviewInvitationDetails String?
   status                  CompanyStatus @default(PENDING)
   claimed                 Boolean       @default(false)
+  verified                Boolean       @default(false)
+  coverKey                String?
+  coverUrl                String?
+  logoPosition            String?
+  bannerPosition          String?
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
 
-  establishments Establishment[]
-  departments    Department[]
-  experiences    ProfessionalExperience[]
-  reviews        Review[]
-  salaryReports  SalaryReport[]
-  responses      ReviewResponse[]
+  establishments  Establishment[]
+  departments     Department[]
+  experiences     ProfessionalExperience[]
+  reviews         Review[]
+  salaryReports   SalaryReport[]
+  responses       ReviewResponse[]
+  representatives User[]
+  notifications   Notification[]
+  threads         CompanyThread[]
 
   @@index([status, name])
   @@index([status, sector])
@@ -154,6 +176,16 @@ enum ReviewStatus {
   PUBLISHED
   REJECTED
   CONTESTED
+}
+
+enum NotificationType {
+  REVIEW
+  SYSTEM
+}
+
+enum CompanyMessageSender {
+  COMPANY
+  NEVALO
 }
 
 enum Criterion {
@@ -292,6 +324,48 @@ model ReviewResponse {
   @@map("review_responses")
 }
 
+model Notification {
+  id        String           @id @default(cuid())
+  companyId String
+  company   Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type      NotificationType @default(SYSTEM)
+  title     String
+  message   String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([companyId, createdAt])
+  @@map("notifications")
+}
+
+model CompanyThread {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  subject   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages CompanyMessage[]
+
+  @@index([companyId, updatedAt])
+  @@map("company_threads")
+}
+
+model CompanyMessage {
+  id        String               @id @default(cuid())
+  threadId  String
+  thread    CompanyThread        @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    CompanyMessageSender @default(COMPANY)
+  content   String
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+
+  @@index([threadId, createdAt])
+  @@map("company_messages")
+}
+
 model ReviewLike {
   id        String   @id @default(cuid())
   reviewId  String
@@ -356,6 +430,7 @@ model ContactMessage {
   id        String   @id @default(cuid())
   name      String
   email     String
+  phone     String?
   subject   String?
   message   String
   read      Boolean  @default(false)

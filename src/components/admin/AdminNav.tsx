@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/admin", label: "Vue d'ensemble" },
+  { href: "/admin", label: "Tableau de bord" },
   { href: "/admin/entreprises", label: "Entreprises" },
   { href: "/admin/avis", label: "Avis & modération" },
   { href: "/admin/utilisateurs", label: "Utilisateurs" },
   { href: "/admin/messages", label: "Messages" },
+  { href: "/admin/requetes", label: "Requêtes" },
 ];
 
 export function AdminNav({

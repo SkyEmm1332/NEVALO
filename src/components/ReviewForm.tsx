@@ -48,7 +48,13 @@ function SectionTitle({
   );
 }
 
-export function ReviewForm({ companies }: { companies: CompanyOption[] }) {
+export function ReviewForm({
+  companies,
+  defaultVisibility = "ANONYMOUS",
+}: {
+  companies: CompanyOption[];
+  defaultVisibility?: "ANONYMOUS" | "PSEUDONYM" | "NOMINATIVE";
+}) {
   const router = useRouter();
   const [companyId, setCompanyId] = useState("");
   const [companyQuery, setCompanyQuery] = useState("");
@@ -82,7 +88,7 @@ export function ReviewForm({ companies }: { companies: CompanyOption[] }) {
   const [comment, setComment] = useState("");
   const [visibility, setVisibility] = useState<
     "ANONYMOUS" | "PSEUDONYM" | "NOMINATIVE"
-  >("ANONYMOUS");
+  >(defaultVisibility);
   const [amount, setAmount] = useState("");
   const [isNet, setIsNet] = useState(true);
   const [period, setPeriod] = useState<"MONTHLY" | "YEARLY">("MONTHLY");

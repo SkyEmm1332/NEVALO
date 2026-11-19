@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { ScoreBadge } from "@/components/ScoreBadge";
 import type { CompanySummary } from "@/components/CompanyCard";
 
 function normalize(value: string) {
@@ -110,12 +111,7 @@ export function ClassementSearch({
                           : ""}
                       </p>
                     </div>
-                    <span className="shrink-0 font-mono text-base font-bold tabular text-accent">
-                      {company.score ?? "—"}
-                      <span className="text-[10px] font-normal text-muted">
-                        /100
-                      </span>
-                    </span>
+                    <ScoreBadge score={company.score} className="shrink-0" />
                   </div>
                 </li>
               ))}
